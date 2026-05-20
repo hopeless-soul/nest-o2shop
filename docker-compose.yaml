@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: o2shop-postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME} -d ${DB_NAME}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      # Development Dockerfile
+      dockerfile: d.dev
+      # Target development stage from multi-stage Dockerfile
+      # target: development
+    container_name: o2shop-app
+    env_file: .env
+    environment:
+      # Overrides .env fallback to target the Docker network alias instead of localhost
+      DB_HOST: postgres
+    ports:
+      - '3001:3001'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Mounts your local code into the container
+      - .:/app
+      # Anonymous volume prevents host node_modules from wiping container dependencies
+      # Prevents container node_modules from being overwritten by your host machine
+      - /app/node_modules
+    # Executes dev command using the correct package manager setup
+    command: pnpm run start:dev
+
+volumes:
+  postgres_data:

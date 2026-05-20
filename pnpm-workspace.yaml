@@ -1,0 +1,11 @@
+packages:
+  - "."
+
+onlyBuiltDependencies:
+  - "@nestjs/core"
+  - "unrs-resolver"
+
+minimumReleaseAge: 0
+
+# CRITICAL: disables interactive approval flow in CI/Docker
+pendingBuilds: []
