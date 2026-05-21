@@ -4,6 +4,7 @@ import { GoogleAuthGuard } from './google-auth.guard';
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 import { AUTH_TYPE_KEY } from "../decorators/auth.decorator";
+import { LocalAuthGuard } from "./local-auth.guard";
 
 /**
  * A general authentication guard for the app. AuthenticationGuard orchestrates authentication
@@ -35,12 +36,12 @@ export class AuthenticationGuard implements CanActivate {
 
   constructor(
     private reflector: Reflector,
-    // private localAuthGuard: LocalAuthGuard,
+    private localAuthGuard: LocalAuthGuard,
     private jwtAuthGuard: JwtAuthGuard,
     private googleAuthGuard: GoogleAuthGuard,
   ) {
     this.authTypeGuardMap = {
-      // [AuthType.Local]: this.localAuthGuard,
+      [AuthType.Local]: this.localAuthGuard,
       [AuthType.Bearer]: this.jwtAuthGuard,
       [AuthType.Google]: this.googleAuthGuard,
       [AuthType.None]: { canActivate: () => true },

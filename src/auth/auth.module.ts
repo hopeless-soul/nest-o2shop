@@ -12,6 +12,10 @@ import { GoogleStrategy, JwtStrategy } from './strategies';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthenticationGuard } from './guards/authentication.guard';
+import { HashingService } from '../common/hashing/hashing.service';
+import { BcryptService } from '../common/hashing/bcrypt.service';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
   imports: [
@@ -30,10 +34,16 @@ import { AuthenticationGuard } from './guards/authentication.guard';
       provide: APP_GUARD,
       useClass: AuthenticationGuard
     },
+    {
+      provide: HashingService,
+      useClass: BcryptService,
+    },
     GoogleStrategy,
     GoogleAuthGuard,
     JwtStrategy,
     JwtAuthGuard,
+    LocalAuthGuard,
+    LocalStrategy,
   ],
 })
 export class AuthModule {}

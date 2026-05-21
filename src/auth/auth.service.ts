@@ -18,6 +18,7 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
 import { ConfigService } from '@nestjs/config';
+import { HashingService } from '../common/hashing/hashing.service';
 
 /**
  * TODO:
@@ -30,6 +31,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly hashingService: HashingService,
   ) {}
 
   /**
@@ -60,6 +62,33 @@ export class AuthService {
     }
 
     // Return user — passport attaches it to req.user
+    return toCurrentUserData(user);
+  }
+
+  async validateLocalUser(
+    email: string,
+    password: string,
+  ): Promise<CurrentUserData> {
+    const user = await this.usersService.findByEmail(email, {
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        googleLinked: true,
+        tokenVersion: true,
+      },
+    });
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    if (user.googleLinked && !user.password) {
+      throw new UnauthorizedException('This account uses Google sign-in');
+    }
+    const isValid = await this.hashingService.compare(password, user.password!);
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
     return toCurrentUserData(user);
   }
 
