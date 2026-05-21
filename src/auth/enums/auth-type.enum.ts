@@ -1,6 +1,6 @@
 export enum AuthType {
   Bearer,
   Local,
-  Google, 
+  Google,
   None,
 }

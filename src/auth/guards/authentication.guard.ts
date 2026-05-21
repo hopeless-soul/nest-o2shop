@@ -1,10 +1,15 @@
-import { Reflector } from "@nestjs/core";
-import { AuthType } from "../enums/auth-type.enum";
+import { Reflector } from '@nestjs/core';
+import { AuthType } from '../enums/auth-type.enum';
 import { GoogleAuthGuard } from './google-auth.guard';
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
-import { JwtAuthGuard } from "./jwt-auth.guard";
-import { AUTH_TYPE_KEY } from "../decorators/auth.decorator";
-import { LocalAuthGuard } from "./local-auth.guard";
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { AUTH_TYPE_KEY } from '../decorators/auth.decorator';
+import { LocalAuthGuard } from './local-auth.guard';
 
 /**
  * A general authentication guard for the app. AuthenticationGuard orchestrates authentication
@@ -15,8 +20,8 @@ import { LocalAuthGuard } from "./local-auth.guard";
  *
  * The main idea is that routes can say what kind of authentication they
  * need, and this guard will run the correct logic for that mode.
- * 
- * *Default AuthType is AuthType.Bearer* 
+ *
+ * *Default AuthType is AuthType.Bearer*
  */
 @Injectable()
 export class AuthenticationGuard implements CanActivate {

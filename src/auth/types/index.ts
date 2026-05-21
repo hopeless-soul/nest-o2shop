@@ -1,6 +1,6 @@
 // ─── Base ─────────────────────────────────────────────────────────────────────
 
-import { User } from "../../users/entities/user.entity";
+import { User } from '../../users/entities/user.entity';
 
 /** Minimal user identity — shared base for anything that refers to a known user */
 interface UserData {
@@ -68,7 +68,9 @@ export type Tokens = AccessToken & RefreshToken;
  */
 export function toCurrentUserData(payload: AccessTokenPayload): CurrentUserData;
 export function toCurrentUserData(user: User): CurrentUserData;
-export function toCurrentUserData(input: AccessTokenPayload | User): CurrentUserData {
+export function toCurrentUserData(
+  input: AccessTokenPayload | User,
+): CurrentUserData {
   if ('sub' in input) {
     return { id: input.sub, email: input.email };
   }

@@ -6,5 +6,5 @@ export class CreateLocalUserDto {
 
   @IsString()
   @MinLength(8)
-  password: string
+  password: string;
 }
