@@ -3,19 +3,21 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
 import type { Response } from 'express';
 import { CurrentUserData } from './types';
 import { AuthService } from './auth.service';
+import { Auth } from './decorators/auth.decorator';
+import { AuthType } from './enums/auth-type.enum';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get('google/login')
-  @UseGuards(GoogleAuthGuard)
+  @Auth(AuthType.Google)
   googleLogin() {
     return { message: 'Google Authentication' };
   }
 
   @Get('google/redirect')
-  @UseGuards(GoogleAuthGuard)
+  @Auth(AuthType.Google)
   async googleCallback(
     @Req() req: { user: CurrentUserData },
     @Res() res: Response,
