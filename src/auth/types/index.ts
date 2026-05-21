@@ -25,7 +25,10 @@ export interface CurrentUserData extends UserData {}
 // ─── JWT payloads ─────────────────────────────────────────────────────────────
 
 /** Claims encoded inside the access token */
-export interface AccessTokenPayload extends UserData {
+export interface AccessTokenPayload {
+  sub: string;
+  // email is mentioned because AccessTokenPayload is not extends UserData anymore
+  email: string;
   tokenVersion: number; // invalidates all tokens on logout / password change
 }
 
@@ -33,7 +36,7 @@ export interface AccessTokenPayload extends UserData {
  *  Email intentionally excluded — minimal surface area */
 export interface RefreshTokenPayload {
   sub: string;
-  tokenVersion: number;
+  refresh_token_id: string;
 }
 
 // ─── Token response shapes ────────────────────────────────────────────────────
@@ -48,3 +51,14 @@ export type RefreshToken = {
 
 /** What AuthService.generateTokens() returns */
 export type Tokens = AccessToken & RefreshToken;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Maps a decoded access token payload back to CurrentUserData.
+ * Used in JwtStrategy.validate() to populate req.user from JWT claims.
+ */
+export const toCurrentUserData = (payload: AccessTokenPayload): CurrentUserData => ({
+  id: payload.sub,
+  email: payload.email,
+});

@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { CreateOAuthUserDto } from './dto/create-oauth-user.dto';
 
 @Injectable()
@@ -36,23 +36,23 @@ export class UsersService {
     return `This action removes a #${id} user`;
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    return await this.userRepository.findOne({ where: { email } });
+  async findByEmail(email: string, options?: FindOneOptions<User>): Promise<User | null> {
+    return await this.userRepository.findOne({ where: { email }, ...options });
   }
 
-  async findByEmailOrThrow(email: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { email } });
+  async findByEmailOrThrow(email: string, options?: FindOneOptions<User>): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { email }, ...options });
     if (!user)
       throw new NotFoundException(`User with email ${email} not found`);
     return user;
   }
 
-  async findById(id: string): Promise<User | null> {
-    return await this.userRepository.findOne({ where: { id } });
+  async findById(id: string, options?: FindOneOptions<User>): Promise<User | null> {
+    return await this.userRepository.findOne({ where: { id }, ...options });
   }
 
-  async findByIdOrThrow(id: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
+  async findByIdOrThrow(id: string, options?: FindOneOptions<User>): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id }, ...options });
     if (!user) throw new NotFoundException(`User #${id} not found`);
     return user;
   }
