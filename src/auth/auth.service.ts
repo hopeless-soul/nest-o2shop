@@ -78,6 +78,11 @@ export class AuthService {
         tokenVersion: true,
       },
     });
+
+    console.log('validateLocalUser -->');
+    console.log(user);
+    
+
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }

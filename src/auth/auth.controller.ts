@@ -38,7 +38,7 @@ export class AuthController {
   @Auth(AuthType.Google)
   async googleCallback(
     @Req() request: { user: CurrentUserData },
-    @Res() response: Response,
+    @Res({ passthrough: true }) response: Response,
   ) {
     console.log('googleCallback -->');
     console.log(request.user);
@@ -60,6 +60,9 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
+    console.log('localLogin -->')
+    console.log(request.user)
+    console.log(user)
     const tokens = await this.authService.issueTokens(user);
     this.setTokenCookies(response, tokens);
     return tokens;
@@ -69,7 +72,7 @@ export class AuthController {
   @Auth(AuthType.None)
   @HttpCode(HttpStatus.CREATED)
   localRegister(@Body() dto: CreateLocalUserDto) {
-    return this.usersService.createFromLocal(dto)
+    return this.usersService.createFromLocal(dto);
   }
 
   // Helpers
@@ -78,8 +81,8 @@ export class AuthController {
 
     response.cookie('access_token', tokens.access_token, {
       httpOnly: true, // prevents JavaScript access to the cookie
-      secure: true, // set to true in production (requires HTTPS)
-      sameSite: true, // restricts cookie to same site (CSRF protection)
+      secure: this.configService.get('NODE_ENV') === 'production', // set to true in production (requires HTTPS)
+      sameSite: 'lax', // restricts cookie to same site (CSRF protection)
       expires: new Date(
         now.getTime() +
           parseInt(this.configService.getOrThrow('JWT_ACCESS_TOKEN_TTL')) *
