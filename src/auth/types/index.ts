@@ -1,5 +1,7 @@
 // ─── Base ─────────────────────────────────────────────────────────────────────
 
+import { User } from "../../users/entities/user.entity";
+
 /** Minimal user identity — shared base for anything that refers to a known user */
 interface UserData {
   id: string;
@@ -55,10 +57,20 @@ export type Tokens = AccessToken & RefreshToken;
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * Maps a decoded access token payload back to CurrentUserData.
- * Used in JwtStrategy.validate() to populate req.user from JWT claims.
+ * Normalizes different user representations into CurrentUserData.
+ *
+ * Accepts either a decoded JWT access token payload (uses `sub` as id)
+ * or a full User entity (uses `id` directly), and maps both to the
+ * unified shape that Passport attaches to req.user.
+ *
+ * @param input - Decoded AccessTokenPayload or a User entity
+ * @returns Normalized CurrentUserData for use as req.user
  */
-export const toCurrentUserData = (payload: AccessTokenPayload): CurrentUserData => ({
-  id: payload.sub,
-  email: payload.email,
-});
+export function toCurrentUserData(payload: AccessTokenPayload): CurrentUserData;
+export function toCurrentUserData(user: User): CurrentUserData;
+export function toCurrentUserData(input: AccessTokenPayload | User): CurrentUserData {
+  if ('sub' in input) {
+    return { id: input.sub, email: input.email };
+  }
+  return { id: input.id, email: input.email };
+}

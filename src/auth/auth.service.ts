@@ -8,6 +8,7 @@ import {
   CurrentUserData,
   OAuthPayload,
   RefreshTokenPayload,
+  toCurrentUserData,
   Tokens,
 } from './types';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -48,17 +49,18 @@ export class AuthService {
     console.log(data);
 
     let user = await this.usersService.findByEmail(data.email);
-    if (user) return user;
 
-    user = await this.usersService.createFromOAuth({
-      email: data.email,
-      displayName: data.displayName,
-      avatarUrl: data.avatarUrl,
-      googleLinked: true,
-    });
+    if (!user) {
+      user = await this.usersService.createFromOAuth({
+        email: data.email,
+        displayName: data.displayName,
+        avatarUrl: data.avatarUrl,
+        googleLinked: true,
+      });
+    }
 
     // Return user — passport attaches it to req.user
-    return user;
+    return toCurrentUserData(user);
   }
 
   /**
