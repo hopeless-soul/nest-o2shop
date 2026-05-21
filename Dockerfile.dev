@@ -8,10 +8,12 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@latest-10 --activate
 
 
+# Copy manifests first — install layer only re-runs when these change
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY . .
-
 RUN pnpm install --frozen-lockfile
+
+# Source copy comes after — file changes don't invalidate the install layer
+COPY . .
 
 # Copy rest of the application files
 
