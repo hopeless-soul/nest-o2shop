@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { FindOneOptions, Repository } from 'typeorm';
+import { EntityManager, FindOneOptions, Repository } from 'typeorm';
 import { CreateOAuthUserDto } from './dto/create-oauth-user.dto';
 import { CreateLocalUserDto } from './dto/create-local-user.dto';
 import { DataSource } from 'typeorm/browser';
@@ -44,6 +44,7 @@ export class UsersService {
 
       try {
         const saved = await userRepo.save(user);
+        await this.linkGuestData(saved.id, saved.email, manager);
         return toCurrentUserData(saved);
       } catch (error: any) {
         // handle race condition from unique constraint violation (e.g. two admins creating users with same email simultaneously)
@@ -54,6 +55,21 @@ export class UsersService {
         throw error;
       }
     });
+  }
+
+  private async linkGuestData(
+    userId: string,
+    email: string,
+    manager: EntityManager,
+  ): Promise<void> {
+    await manager.query(
+      `UPDATE "order" SET "userId" = $1, "guestEmail" = NULL WHERE "guestEmail" = $2`,
+      [userId, email],
+    );
+    await manager.query(
+      `UPDATE "review" SET "userId" = $1 WHERE "email" = $2 AND "userId" IS NULL`,
+      [userId, email],
+    );
   }
 
   findAll() {

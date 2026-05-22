@@ -48,7 +48,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   async validate(payload: AccessTokenPayload): Promise<CurrentUserData> {
     const user = await this.usersService.findById(payload.sub, {
-      select: { tokenVersion: true },
+      select: { tokenVersion: true, role: true },
     });
     if (!user) {
       throw new UnauthorizedException('Invalid token payload');
@@ -56,6 +56,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (user.tokenVersion !== payload.tokenVersion) {
       throw new UnauthorizedException('Token is outdated');
     }
-    return toCurrentUserData(payload);
+    return { ...toCurrentUserData(payload), role: user.role };
   }
 }

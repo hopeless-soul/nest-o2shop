@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
   VersionColumn,
 } from 'typeorm';
+import { Role } from '../enums/role.enum';
 
 @Entity()
 export class User {
@@ -27,6 +28,9 @@ export class User {
 
   @Column({ default: false })
   googleLinked!: boolean;
+
+  @Column({ type: 'enum', enum: Role, default: Role.REGULAR })
+  role: Role;
 
   @Column({ default: true })
   isActive: boolean;

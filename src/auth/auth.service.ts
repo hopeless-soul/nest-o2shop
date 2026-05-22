@@ -73,6 +73,7 @@ export class AuthService {
       select: {
         id: true,
         email: true,
+        role: true,
         password: true,
         googleLinked: true,
         tokenVersion: true,

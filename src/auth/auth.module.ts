@@ -12,6 +12,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { LocalStrategy } from './strategies/local.strategy';
 import { HashingModule } from '../common/hashing/hashing.module';
 import { AuthenticationGuard } from './guards/authentication.guard';
+import { RolesGuard } from './guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 
 @Module({
@@ -34,9 +35,14 @@ import { APP_GUARD } from '@nestjs/core';
     LocalAuthGuard,
     LocalStrategy,
     AuthenticationGuard,
+    RolesGuard,
     {
       provide: APP_GUARD,
       useClass: AuthenticationGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

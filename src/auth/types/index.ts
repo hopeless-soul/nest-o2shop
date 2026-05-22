@@ -1,11 +1,13 @@
 // ─── Base ─────────────────────────────────────────────────────────────────────
 
 import { User } from '../../users/entities/user.entity';
+import { Role } from '../../users/enums/role.enum';
 
 /** Minimal user identity — shared base for anything that refers to a known user */
 interface UserData {
   id: string;
   email: string;
+  role: Role;
 }
 
 // ─── OAuth ────────────────────────────────────────────────────────────────────
@@ -29,9 +31,9 @@ export interface CurrentUserData extends UserData {}
 /** Claims encoded inside the access token */
 export interface AccessTokenPayload {
   sub: string;
-  // email is mentioned because AccessTokenPayload is not extends UserData anymore
   email: string;
-  tokenVersion: number; // invalidates all tokens on logout / password change
+  role: Role;
+  tokenVersion: number;
 }
 
 /** Claims encoded inside the refresh token.
@@ -72,7 +74,7 @@ export function toCurrentUserData(
   input: AccessTokenPayload | User,
 ): CurrentUserData {
   if ('sub' in input) {
-    return { id: input.sub, email: input.email };
+    return { id: input.sub, email: input.email, role: input.role };
   }
-  return { id: input.id, email: input.email };
+  return { id: input.id, email: input.email, role: input.role };
 }
