@@ -1,7 +1,8 @@
 // scripts/seed.ts
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import * as dotenv from 'dotenv';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+(require('dotenv') as { config: () => void }).config();
 import { User } from '../src/users/entities/user.entity';
 import { Role } from '../src/users/enums/role.enum';
 import { Collection } from '../src/collections/entities/collection.entity';
@@ -18,8 +19,6 @@ import { OrderItem } from '../src/orders/entities/order-item.entity';
 import { PaymentStatus } from '../src/orders/enums/payment-status.enum';
 import { FulfillmentStatus } from '../src/orders/enums/fulfillment-status.enum';
 import { SavedAddress } from '../src/addresses/entities/saved-address.entity';
-
-dotenv.config();
 
 function generateSku(productName: string, colorName: string, size: string): string {
     return [productName, colorName, size]

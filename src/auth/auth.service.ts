@@ -80,9 +80,6 @@ export class AuthService {
       },
     });
 
-    console.log('validateLocalUser -->');
-    console.log(user);
-
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -127,14 +124,14 @@ export class AuthService {
       this.signToken<Partial<AccessTokenPayload>>(
         user.id,
         this.configService.getOrThrow<string>('JWT_SECRET'),
-        this.configService.getOrThrow<number>('JWT_ACCESS_TOKEN_TTL'),
+        parseInt(this.configService.getOrThrow('JWT_ACCESS_TOKEN_TTL')),
         { ...rest, tokenVersion: currentData.tokenVersion },
       ),
       // Refresh Token JWT
       this.signToken<Partial<RefreshTokenPayload>>(
         user.id,
         this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
-        this.configService.getOrThrow<number>('JWT_REFRESH_TOKEN_TTL'),
+        parseInt(this.configService.getOrThrow('JWT_REFRESH_TOKEN_TTL')),
         {
           refresh_token_id: rtId,
         },

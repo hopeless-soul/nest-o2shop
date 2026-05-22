@@ -23,8 +23,6 @@ export class UsersService {
   ) {}
 
   createFromOAuth(dto: CreateOAuthUserDto) {
-    console.log('createFromOAuth -->', dto);
-
     const user = this.userRepository.create(dto);
     return this.userRepository.save(user);
   }

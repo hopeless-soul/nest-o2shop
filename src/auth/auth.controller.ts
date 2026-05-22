@@ -40,9 +40,6 @@ export class AuthController {
     @Req() request: { user: CurrentUserData },
     @Res({ passthrough: true }) response: Response,
   ) {
-    console.log('googleCallback -->');
-    console.log(request.user);
-
     const tokens = await this.authService.issueTokens(request.user);
     this.setTokenCookies(response, tokens);
 
@@ -60,9 +57,6 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
-    console.log('localLogin -->');
-    console.log(request.user);
-    console.log(user);
     const tokens = await this.authService.issueTokens(user);
     this.setTokenCookies(response, tokens);
     return tokens;
