@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "boost-prompt": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/boost-prompt/SKILL.md",
+      "computedHash": "2621a44fbd9fc2636953d1e6e39e5faeed995f7fb958ec12cc98a2f0576f6fa7"
+    },
+    "grill-me": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/productivity/grill-me/SKILL.md",
+      "computedHash": "daf64ca15f4fa081a6747766db538e2dbd1131725ed4fcdd3d538dc62c7035ba"
+    },
+    "nestjs-best-practices": {
+      "source": "kadajett/agent-nestjs-skills",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "68658903272e1015f3ec5084c7d0988216a47f42f675ed819a675250fc6a23cd"
+    }
+  }
+}
