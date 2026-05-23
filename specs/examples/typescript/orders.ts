@@ -18,9 +18,9 @@ async function getProducts(limit = 5) {
   return res.json();
 }
 
-async function getProduct(id: string) {
-  const res = await fetch(`${BASE}/products/${id}`);
-  if (!res.ok) throw new Error(`GET /products/${id} failed: ${res.status}`);
+async function getProduct(name: string) {
+  const res = await fetch(`${BASE}/products/${name}`);
+  if (!res.ok) throw new Error(`GET /products/${name} failed: ${res.status}`);
   return res.json();
 }
 
@@ -63,7 +63,7 @@ async function main() {
   let chosenProduct: any = null;
   let chosenVariant: any = null;
   for (const p of products.data) {
-    const detail = await getProduct(p.id);
+    const detail = await getProduct(p.name);
     const inStock = (detail.variants ?? []).find((v: any) => v.stock > 0);
     if (inStock) {
       chosenProduct = detail;
@@ -84,10 +84,12 @@ async function main() {
     shippingAddress: {
       firstName: 'Jane',
       lastName: 'Doe',
-      addressLine1: '123 Main St',
+      address1: '123 Main St',
       city: 'Warsaw',
       postalCode: '00-001',
       country: 'PL',
+      province: 'NY',
+      phone: '+1 555 000 0000',
     },
     billingIsSameAsShipping: true,
     items: [
@@ -105,7 +107,7 @@ async function main() {
 
   console.log('\nLooking up order by number…');
   const fetched = await getOrderByNumber(order.orderNumber);
-  console.log(`Order total: ${fetched.totalAmount} ${fetched.currency}`);
+  console.log(`Order total: ${fetched.totalAmount} ${fetched.totalCurrency}`);
   console.log(`Items:`, fetched.items.map((i: any) => `${i.productName} x${i.quantity}`));
 }
 

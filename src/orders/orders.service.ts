@@ -47,7 +47,7 @@ export class OrdersService {
       const variantSkus = dto.items.map((i) => i.variantSku);
       const variants = await variantRepo
         .createQueryBuilder('v')
-        .leftJoinAndSelect('v.product', 'p')
+        .innerJoinAndSelect('v.product', 'p')
         .where('v.sku IN (:...skus)', { skus: variantSkus })
         .setLock('pessimistic_write')
         .getMany();
