@@ -3144,7 +3144,7 @@
     },
     "/orders": {
       "post": {
-        "description": "Works for both guest and authenticated users. Provide guestEmail for guest checkout.",
+        "description": "Works for both guest and authenticated users. Provide email for guest checkout.",
         "operationId": "OrdersController_create",
         "parameters": [],
         "requestBody": {
@@ -5495,17 +5495,17 @@
       "CreateOrderDto": {
         "type": "object",
         "properties": {
-          "guestEmail": {
+          "email": {
             "type": "string",
             "format": "email",
             "example": "guest@example.com",
             "description": "Required for guest checkout (no logged-in account)"
           },
-          "guestFirstName": {
+          "firstName": {
             "type": "string",
             "example": "Jane"
           },
-          "guestLastName": {
+          "lastName": {
             "type": "string",
             "example": "Doe"
           },
@@ -5746,15 +5746,15 @@
             "type": "string",
             "format": "uuid"
           },
-          "guestEmail": {
+          "email": {
             "type": "string",
             "example": "guest@example.com"
           },
-          "guestFirstName": {
+          "firstName": {
             "type": "string",
             "example": "Jane"
           },
-          "guestLastName": {
+          "lastName": {
             "type": "string",
             "example": "Doe"
           },

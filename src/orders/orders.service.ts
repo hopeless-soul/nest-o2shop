@@ -98,9 +98,9 @@ export class OrdersService {
         orderNumber,
         orderSequence: seq,
         userId: currentUser?.id,
-        guestEmail: currentUser ? undefined : dto.guestEmail,
-        guestFirstName: currentUser ? undefined : dto.guestFirstName,
-        guestLastName: currentUser ? undefined : dto.guestLastName,
+        email: currentUser ? undefined : dto.email,
+        firstName: currentUser ? undefined : dto.firstName,
+        lastName: currentUser ? undefined : dto.lastName,
         paymentStatus: undefined,
         fulfillmentStatus: undefined,
         totalAmount,
@@ -125,7 +125,7 @@ export class OrdersService {
       page,
       limit,
       userId,
-      guestEmail,
+      email,
       paymentStatus,
       fulfillmentStatus,
       createdAfter,
@@ -138,9 +138,9 @@ export class OrdersService {
       .leftJoinAndSelect('order.user', 'user');
 
     if (userId) qb.andWhere('order.userId = :userId', { userId });
-    if (guestEmail)
-      qb.andWhere('order.guestEmail ILIKE :guestEmail', {
-        guestEmail: `%${guestEmail}%`,
+    if (email)
+      qb.andWhere('order.email ILIKE :email', {
+        email: `%${email}%`,
       });
     if (paymentStatus)
       qb.andWhere('order.paymentStatus = :paymentStatus', { paymentStatus });

@@ -56,7 +56,7 @@ The method is called, a UUID `rtId` is generated and embedded in the refresh tok
 async findByOrderNumber(@Param('orderNumber') orderNumber: string)
 ```
 
-Anyone who knows an order number can retrieve the full order including `guestEmail`, `guestFirstName`, `guestLastName`, and complete shipping/billing addresses. Order numbers are sequential (`O2SHOP-000001`, `O2SHOP-000002`) making enumeration trivial without rate limiting.
+Anyone who knows an order number can retrieve the full order including `email`, `firstName`, `lastName`, and complete shipping/billing addresses. Order numbers are sequential (`O2SHOP-000001`, `O2SHOP-000002`) making enumeration trivial without rate limiting.
 
 **Fix options:**
 - Require the caller to also supply the associated email as a query param (common guest order lookup pattern)

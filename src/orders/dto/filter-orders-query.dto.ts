@@ -11,7 +11,7 @@ import { FulfillmentStatus } from '../enums/fulfillment-status.enum';
 
 export class FilterOrdersQueryDto extends PaginationQueryDto {
   @IsOptional() @IsUUID() userId?: string;
-  @IsOptional() @IsString() guestEmail?: string;
+  @IsOptional() @IsString() email?: string;
   @IsOptional() @IsEnum(PaymentStatus) paymentStatus?: PaymentStatus;
   @IsOptional()
   @IsEnum(FulfillmentStatus)

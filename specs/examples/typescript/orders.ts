@@ -79,7 +79,7 @@ async function main() {
   console.log(`Ordering: "${chosenProduct.name}" variant SKU ${chosenVariant.sku}`);
 
   const orderPayload = {
-    guestEmail: 'guest@example.com',
+    email: 'guest@example.com',
     shippingMethodId: shippingMethod.id,
     shippingAddress: {
       firstName: 'Jane',

@@ -19,17 +19,17 @@ export class CreateOrderDto {
   })
   @IsOptional()
   @IsEmail()
-  guestEmail?: string;
+  email?: string;
 
   @ApiPropertyOptional({ example: 'Jane' })
   @IsOptional()
   @IsString()
-  guestFirstName?: string;
+  firstName?: string;
 
   @ApiPropertyOptional({ example: 'Doe' })
   @IsOptional()
   @IsString()
-  guestLastName?: string;
+  lastName?: string;
 
   @ApiProperty({ format: 'uuid', description: 'ID from GET /shipping-methods' })
   @IsString()

@@ -302,9 +302,9 @@
   - [x] `orderSequence` — int (used to generate orderNumber in transaction)
   - [x] `user` — ManyToOne → User nullable
   - [x] `userId` — varchar nullable
-  - [x] `guestEmail` — varchar nullable
-  - [x] `guestFirstName` — varchar nullable
-  - [x] `guestLastName` — varchar nullable
+  - [x] `email` — varchar nullable
+  - [x] `firstName` — varchar nullable
+  - [x] `lastName` — varchar nullable
   - [x] `paymentStatus` — enum DEFAULT PENDING
   - [x] `fulfillmentStatus` — enum DEFAULT UNFULFILLED
   - [x] `totalAmount` — decimal(10,2)
@@ -372,7 +372,7 @@
 > `src/users/users.service.ts`
 
 - [x] After `User` is created (local register), in same transaction:
-  - [x] `UPDATE Order SET userId = newUser.id, guestEmail = NULL WHERE guestEmail = newUser.email`
+  - [x] `UPDATE Order SET userId = newUser.id, email = NULL WHERE email = newUser.email`
   - [x] `UPDATE Review SET userId = newUser.id WHERE email = newUser.email AND userId IS NULL`
 
 ---
@@ -385,6 +385,6 @@
 - [ ] DB schema check — `Order` has `shipping_first_name`, `billing_first_name` columns
 - [ ] DB schema check — `sub_category` has unique constraint on `(slug, category_id)`
 - [ ] DB schema check — `product_variant.sku` has unique constraint
-- [ ] E2E: `POST /auth/register` with email matching guest order → `Order.userId` set, `guestEmail` null
+- [ ] E2E: `POST /auth/register` with email matching guest order → `Order.userId` set, `email` null
 - [ ] E2E: `GET /products/:name` returns `rating` field (AVG of APPROVED reviews)
 - [ ] E2E: `POST /products/:id/photos` (multipart) → file in `./uploads/`, URL accessible via HTTP

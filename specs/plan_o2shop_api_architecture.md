@@ -92,7 +92,7 @@ src/
     dto/
       order-response.dto.ts
       admin-order-response.dto.ts      ← extends OrderResponseDto
-      filter-orders-query.dto.ts       ← userId?, guestEmail?, paymentStatus?,
+      filter-orders-query.dto.ts       ← userId?, email?, paymentStatus?,
                                           fulfillmentStatus?, createdAfter?, createdBefore?, ...
 
   addresses/

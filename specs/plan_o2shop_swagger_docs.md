@@ -220,9 +220,9 @@ export class AdminUserResponseDto extends UserResponseDto {
 ```typescript
 export class CreateOrderDto {
   @ApiPropertyOptional({ format: 'email', description: 'Required for guest checkout' })
-  guestEmail?: string;
-  @ApiPropertyOptional() guestFirstName?: string;
-  @ApiPropertyOptional() guestLastName?: string;
+  email?: string;
+  @ApiPropertyOptional() firstName?: string;
+  @ApiPropertyOptional() lastName?: string;
   @ApiProperty({ format: 'uuid', description: 'ID from GET /shipping-methods' })
   shippingMethodId: string;
   @ApiProperty({ type: () => AddressDto }) shippingAddress: AddressDto;

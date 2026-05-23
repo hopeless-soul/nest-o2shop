@@ -327,9 +327,9 @@ export enum FulfillmentStatus {
 | orderSequence | `@Column()` | integer; incremented in transaction |
 | user | `@ManyToOne(() => User, { nullable: true })` | |
 | userId | `@Column({ nullable: true })` | |
-| guestEmail | `@Column({ nullable: true })` | cleared and userId set on registration |
-| guestFirstName | `@Column({ nullable: true })` | |
-| guestLastName | `@Column({ nullable: true })` | |
+| email | `@Column({ nullable: true })` | cleared and userId set on registration |
+| firstName | `@Column({ nullable: true })` | |
+| lastName | `@Column({ nullable: true })` | |
 | paymentStatus | `enum PaymentStatus DEFAULT PENDING` | |
 | fulfillmentStatus | `enum FulfillmentStatus DEFAULT UNFULFILLED` | |
 | totalAmount | `decimal(10,2)` | |
@@ -387,8 +387,8 @@ inside the **same transaction**, run:
 
 ```typescript
 await manager.update(Order,
-  { guestEmail: newUser.email },
-  { userId: newUser.id, guestEmail: null, guestFirstName: null, guestLastName: null },
+  { email: newUser.email },
+  { userId: newUser.id, email: null, firstName: null, lastName: null },
 );
 await manager.update(Review,
   { email: newUser.email, userId: IsNull() },
@@ -449,6 +449,6 @@ After running `pnpm run start:dev`:
    - `Order` → `shipping_first_name`, `billing_first_name`, etc.
 4. `SubCategory` has composite unique constraint on `(slug, categoryId)` — verify via `\d sub_category`
 5. `ProductVariant.sku` is globally unique — verify constraint in schema
-6. `POST /auth/register` with email matching a prior guest order → `Order.userId` populated, `guestEmail` cleared
+6. `POST /auth/register` with email matching a prior guest order → `Order.userId` populated, `email` cleared
 7. `GET /products/:name` returns computed `rating` (AVG of APPROVED reviews only) in response DTO
 8. `POST /products/:id/photos` (multipart) → file appears in `./uploads/`, returned URL is accessible via HTTP

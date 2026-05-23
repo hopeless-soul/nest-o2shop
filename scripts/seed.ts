@@ -476,9 +476,9 @@ async function seed() {
     const order3 = await orderRepo.save(orderRepo.create({
         orderNumber: 'O2SHOP-000003',
         orderSequence: 3,
-        guestEmail: 'guest@example.com',
-        guestFirstName: 'Jane',
-        guestLastName: 'Doe',
+        email: 'guest@example.com',
+        firstName: 'Jane',
+        lastName: 'Doe',
         paymentStatus: PaymentStatus.PAID,
         fulfillmentStatus: FulfillmentStatus.UNFULFILLED,
         totalAmount: 54.97,

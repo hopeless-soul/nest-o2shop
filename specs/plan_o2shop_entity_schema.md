@@ -15,7 +15,7 @@ Designing the entity layer for a production-ready clothing online store built on
 | Category / SubCategory | Dynamic DB entities, admin-managed |
 | Collection | Full DB entity (slug, description, banner image) |
 | Image storage | Abstract `StorageService` → `LocalStorageService` (swappable, mirrors `HashingModule`) |
-| Guest identity | No guest entity; `Order.guestEmail` holds the email; linked to `User` on registration |
+| Guest identity | No guest entity; `Order.email` holds the email; linked to `User` on registration |
 | Order number | `O2SHOP-000001` (prefix + zero-padded sequence) |
 | Currency | Per-product; ISO 4217 3-char code |
 | Product visibility | `isPublished: boolean` (two levels: public / admin-only) |
@@ -229,9 +229,9 @@ export enum ReviewStatus { PENDING = 'pending', APPROVED = 'approved', REJECTED 
 | orderSequence | int | Used to generate orderNumber; increment atomically in transaction |
 | user | ManyToOne → User nullable | Set for registered users |
 | userId | varchar nullable | |
-| guestEmail | varchar nullable | Set for guests; used for post-registration linking |
-| guestFirstName | varchar nullable | |
-| guestLastName | varchar nullable | |
+| email | varchar nullable | Set for guests; used for post-registration linking |
+| firstName | varchar nullable | |
+| lastName | varchar nullable | |
 | paymentStatus | enum PaymentStatus | PENDING / PAID / FAILED / REFUNDED |
 | fulfillmentStatus | enum FulfillmentStatus | UNFULFILLED / FULFILLED / PARTIALLY_FULFILLED / CANCELLED |
 | totalAmount | decimal(10,2) | |
@@ -372,8 +372,8 @@ TypeORM `autoLoadEntities: true` in `database.config.ts` means entities register
 ## Guest → User Order Linking
 
 When a registered user is created via `AuthService.createFromLocal()` (or Google OAuth):
-1. Find all `Order` rows where `guestEmail = newUser.email`
-2. Set `userId = newUser.id`, clear `guestEmail`
+1. Find all `Order` rows where `email = newUser.email`
+2. Set `userId = newUser.id`, clear `email`
 3. Find all `Review` rows where `email = newUser.email` and `userId IS NULL`
 4. Set `userId = newUser.id`
 

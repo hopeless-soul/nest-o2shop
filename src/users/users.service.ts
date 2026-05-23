@@ -62,7 +62,7 @@ export class UsersService {
     manager: EntityManager,
   ): Promise<void> {
     await manager.query(
-      `UPDATE "order" SET "userId" = $1, "guestEmail" = NULL WHERE "guestEmail" = $2`,
+      `UPDATE "order" SET "userId" = $1, "email" = NULL WHERE "email" = $2`,
       [userId, email],
     );
     await manager.query(

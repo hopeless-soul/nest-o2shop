@@ -6,9 +6,9 @@ curl -X 'POST' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
-  "guestEmail": "bob@o2shop.dev",
-  "guestFirstName": "bob123",
-  "guestLastName": "123bob",
+  "email": "bob@o2shop.dev",
+  "firstName": "bob123",
+  "lastName": "123bob",
   "shippingMethodId": "35896eeb-974a-4bd7-b29b-5514ebfc1b12",
   "shippingAddress": {
     "firstName": "H",

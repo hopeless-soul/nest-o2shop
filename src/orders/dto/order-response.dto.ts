@@ -81,15 +81,15 @@ export class AdminOrderResponseDto extends OrderResponseDto {
 
   @ApiPropertyOptional({ example: 'guest@example.com' })
   @Expose()
-  guestEmail?: string;
+  email?: string;
 
   @ApiPropertyOptional({ example: 'Jane' })
   @Expose()
-  guestFirstName?: string;
+  firstName?: string;
 
   @ApiPropertyOptional({ example: 'Doe' })
   @Expose()
-  guestLastName?: string;
+  lastName?: string;
 
   @ApiPropertyOptional()
   @Expose()

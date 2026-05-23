@@ -32,13 +32,13 @@ export class Order {
   user?: User;
 
   @Column({ nullable: true })
-  guestEmail?: string;
+  email?: string;
 
   @Column({ nullable: true })
-  guestFirstName?: string;
+  firstName?: string;
 
   @Column({ nullable: true })
-  guestLastName?: string;
+  lastName?: string;
 
   @Column({
     type: 'enum',
