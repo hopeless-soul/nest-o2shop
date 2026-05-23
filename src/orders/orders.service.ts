@@ -9,9 +9,16 @@ import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { FilterOrdersQueryDto } from './dto/filter-orders-query.dto';
 import { ShippingService } from '../shipping/shipping.service';
 import { CurrentUserData } from '../auth/types';
 import { ProductVariant } from '../products/entities/product-variant.entity';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+
+export interface Paginated<T> {
+  data: T[];
+  total: number;
+}
 
 @Injectable()
 export class OrdersService {
@@ -117,19 +124,62 @@ export class OrdersService {
     });
   }
 
-  findAll(): Promise<Order[]> {
-    return this.orderRepo.find({
-      relations: { items: true, user: true },
-      order: { createdAt: 'DESC' },
-    });
+  async findAllAdmin(query: FilterOrdersQueryDto): Promise<Paginated<Order>> {
+    const {
+      page,
+      limit,
+      userId,
+      guestEmail,
+      paymentStatus,
+      fulfillmentStatus,
+      createdAfter,
+      createdBefore,
+    } = query;
+
+    const qb = this.orderRepo
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.items', 'items')
+      .leftJoinAndSelect('order.user', 'user');
+
+    if (userId) qb.andWhere('order.userId = :userId', { userId });
+    if (guestEmail)
+      qb.andWhere('order.guestEmail ILIKE :guestEmail', {
+        guestEmail: `%${guestEmail}%`,
+      });
+    if (paymentStatus)
+      qb.andWhere('order.paymentStatus = :paymentStatus', { paymentStatus });
+    if (fulfillmentStatus)
+      qb.andWhere('order.fulfillmentStatus = :fulfillmentStatus', {
+        fulfillmentStatus,
+      });
+    if (createdAfter)
+      qb.andWhere('order.createdAt >= :createdAfter', { createdAfter });
+    if (createdBefore)
+      qb.andWhere('order.createdAt <= :createdBefore', { createdBefore });
+
+    qb.orderBy('order.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total };
   }
 
-  findMine(userId: string): Promise<Order[]> {
-    return this.orderRepo.find({
-      where: { userId },
-      relations: { items: true },
-      order: { createdAt: 'DESC' },
-    });
+  async findMine(
+    userId: string,
+    query: PaginationQueryDto,
+  ): Promise<Paginated<Order>> {
+    const { page, limit } = query;
+    const [data, total] = await this.orderRepo
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.items', 'items')
+      .where('order.userId = :userId', { userId })
+      .orderBy('order.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { data, total };
   }
 
   async findByOrderNumber(orderNumber: string): Promise<Order> {
@@ -138,6 +188,15 @@ export class OrdersService {
       relations: { items: true },
     });
     if (!order) throw new NotFoundException(`Order "${orderNumber}" not found`);
+    return order;
+  }
+
+  async findByIdAdmin(id: string): Promise<Order> {
+    const order = await this.orderRepo.findOne({
+      where: { id },
+      relations: { items: true, user: true },
+    });
+    if (!order) throw new NotFoundException(`Order #${id} not found`);
     return order;
   }
 

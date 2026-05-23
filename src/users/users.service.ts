@@ -5,12 +5,18 @@ import {
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { EntityManager, FindOneOptions, Repository } from 'typeorm';
+import { DataSource, EntityManager, FindOneOptions, Repository } from 'typeorm';
 import { CreateOAuthUserDto } from './dto/create-oauth-user.dto';
 import { CreateLocalUserDto } from './dto/create-local-user.dto';
-import { DataSource } from 'typeorm/browser';
 import { HashingService } from '../common/hashing/hashing.service';
-import { CurrentUserData, toCurrentUserData } from '../auth/types';
+import { toCurrentUserData } from '../auth/types';
+import { FilterUsersQueryDto } from './dto/filter-users-query.dto';
+import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
+
+export interface Paginated<T> {
+  data: T[];
+  total: number;
+}
 
 @Injectable()
 export class UsersService {
@@ -45,8 +51,7 @@ export class UsersService {
         await this.linkGuestData(saved.id, saved.email, manager);
         return toCurrentUserData(saved);
       } catch (error: any) {
-        // handle race condition from unique constraint violation (e.g. two admins creating users with same email simultaneously)
-        const pgUniqueViolationCode = '23505'; // Postgres 'unique' violation
+        const pgUniqueViolationCode = '23505';
         if (error?.code === pgUniqueViolationCode) {
           throw new ConflictException('Email or username already exists');
         }
@@ -70,26 +75,71 @@ export class UsersService {
     );
   }
 
-  // TEST: IMPLEMENTATION 
-  findAll() {
-    // return `This action returns all users`;
-    return this.userRepository.find();
+  async findAllAdmin(query: FilterUsersQueryDto): Promise<Paginated<User>> {
+    const {
+      page,
+      limit,
+      search,
+      role,
+      isDeleted,
+      userId,
+      createdAfter,
+      createdBefore,
+    } = query;
+
+    const qb = this.userRepository.createQueryBuilder('user');
+
+    if (isDeleted) {
+      qb.withDeleted().where('user.deletedAt IS NOT NULL');
+    }
+
+    if (userId) {
+      qb.andWhere('user.id = :userId', { userId });
+    }
+    if (role) {
+      qb.andWhere('user.role = :role', { role });
+    }
+    if (search) {
+      qb.andWhere(
+        '(user.email ILIKE :search OR user.displayName ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+    if (createdAfter) {
+      qb.andWhere('user.createdAt >= :createdAfter', { createdAfter });
+    }
+    if (createdBefore) {
+      qb.andWhere('user.createdAt <= :createdBefore', { createdBefore });
+    }
+
+    qb.orderBy('user.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total };
   }
 
-  // TEST: IMPLEMENTATION 
-
-  findOne(id: string) {
-    return `This action returns a #${id} user`;
+  async findByIdAdmin(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
+    if (!user) throw new NotFoundException(`User #${id} not found`);
+    return user;
   }
 
-  // TEST: IMPLEMENTATION 
-  update(id: string, updateUserDto: any) {
-    return `This action updates a #${id} user`;
+  async updateAdmin(id: string, dto: UpdateAdminUserDto): Promise<User> {
+    const user = await this.findByIdAdmin(id);
+    if (dto.role !== undefined) user.role = dto.role;
+    if (dto.isActive !== undefined) user.isActive = dto.isActive;
+    if (dto.resetTokenVersion) user.tokenVersion += 1;
+    return this.userRepository.save(user);
   }
 
-  // TEST: IMPLEMENTATION 
-  remove(id: string) {
-    return `This action removes a #${id} user`;
+  async softDeleteAdmin(id: string): Promise<void> {
+    await this.findByIdAdmin(id);
+    await this.userRepository.softDelete(id);
   }
 
   async findByEmail(

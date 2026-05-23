@@ -1,11 +1,22 @@
-import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewStatusDto } from './dto/update-review-status.dto';
+import { ReviewResponseDto } from './dto/review-response.dto';
+import { PaginatedResponseDto } from '../common/dto/paginated-response.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '../users/enums/role.enum';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { CurrentUserData } from '../auth/types';
 
@@ -14,24 +25,44 @@ export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Auth(AuthType.None)
+  @Get('products/:productId/reviews')
+  async findByProduct(
+    @Param('productId') productId: string,
+    @Query() query: PaginationQueryDto,
+  ): Promise<PaginatedResponseDto<ReviewResponseDto>> {
+    const result = await this.reviewsService.findByProduct(productId, query);
+    return {
+      data: result.data.map((r) =>
+        plainToInstance(ReviewResponseDto, r, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+      total: result.total,
+      page: query.page,
+      limit: query.limit,
+    };
+  }
+
+  @Auth(AuthType.None)
   @Post('products/:productId/reviews')
-  create(
+  async create(
     @Param('productId') productId: string,
     @Body() dto: CreateReviewDto,
     @CurrentUser() user?: CurrentUserData,
-  ) {
-    return this.reviewsService.create(productId, dto, user);
+  ): Promise<ReviewResponseDto> {
+    const review = await this.reviewsService.create(productId, dto, user);
+    return plainToInstance(ReviewResponseDto, review, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Auth(AuthType.Bearer)
   @Delete('reviews/:id')
-  remove(@Param('id') id: string, @CurrentUser() user: CurrentUserData) {
-    return this.reviewsService.remove(id, user);
-  }
-
-  @Roles(Role.ADMIN)
-  @Patch('reviews/:id/status')
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateReviewStatusDto) {
-    return this.reviewsService.updateStatus(id, dto);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<void> {
+    await this.reviewsService.remove(id, user);
   }
 }

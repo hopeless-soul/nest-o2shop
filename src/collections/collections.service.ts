@@ -8,6 +8,12 @@ import { Repository } from 'typeorm';
 import { Collection } from './entities/collection.entity';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+
+export interface Paginated<T> {
+  data: T[];
+  total: number;
+}
 
 @Injectable()
 export class CollectionsService {
@@ -16,8 +22,23 @@ export class CollectionsService {
     private readonly repo: Repository<Collection>,
   ) {}
 
-  async findAll(): Promise<Collection[]> {
-    return this.repo.find({ where: { isActive: true } });
+  async findAll(
+    query: PaginationQueryDto,
+    isAdmin = false,
+  ): Promise<Paginated<Collection>> {
+    const { page, limit } = query;
+    const qb = this.repo.createQueryBuilder('collection');
+
+    if (!isAdmin) {
+      qb.where('collection.isActive = true');
+    }
+
+    qb.orderBy('collection.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total };
   }
 
   async findById(id: string): Promise<Collection> {

@@ -1,19 +1,11 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { ShippingService } from './shipping.service';
-import { CreateShippingMethodDto } from './dto/create-shipping-method.dto';
+import { ShippingMethodResponseDto } from './dto/shipping-method-response.dto';
+import { PaginatedResponseDto } from '../common/dto/paginated-response.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '../users/enums/role.enum';
 
 @Controller('shipping-methods')
 export class ShippingController {
@@ -21,25 +13,15 @@ export class ShippingController {
 
   @Auth(AuthType.None)
   @Get()
-  findAll(@Query('all') all?: string) {
-    return this.shippingService.findAll(all !== 'true');
-  }
-
-  @Roles(Role.ADMIN)
-  @Post()
-  create(@Body() dto: CreateShippingMethodDto) {
-    return this.shippingService.create(dto);
-  }
-
-  @Roles(Role.ADMIN)
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: CreateShippingMethodDto) {
-    return this.shippingService.update(id, dto);
-  }
-
-  @Roles(Role.ADMIN)
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.shippingService.remove(id);
+  async findAll(
+    @Query() query: PaginationQueryDto,
+  ): Promise<PaginatedResponseDto<ShippingMethodResponseDto>> {
+    const all = await this.shippingService.findAll(true);
+    const data = all.map((m) =>
+      plainToInstance(ShippingMethodResponseDto, m, {
+        excludeExtraneousValues: true,
+      }),
+    );
+    return { data, total: data.length, page: query.page, limit: query.limit };
   }
 }

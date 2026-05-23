@@ -4,6 +4,7 @@ import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
+import { AdminOrdersController } from './admin-orders.controller';
 import { ShippingModule } from '../shipping/shipping.module';
 import { ProductsModule } from '../products/products.module';
 
@@ -13,7 +14,7 @@ import { ProductsModule } from '../products/products.module';
     ShippingModule,
     ProductsModule,
   ],
-  controllers: [OrdersController],
+  controllers: [OrdersController, AdminOrdersController],
   providers: [OrdersService],
   exports: [OrdersService],
 })

@@ -1,11 +1,10 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { OrderResponseDto } from './dto/order-response.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '../users/enums/role.enum';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { CurrentUserData } from '../auth/types';
 
@@ -15,31 +14,24 @@ export class OrdersController {
 
   @Auth(AuthType.None)
   @Post()
-  create(@Body() dto: CreateOrderDto, @CurrentUser() user?: CurrentUserData) {
-    return this.ordersService.create(dto, user);
-  }
-
-  @Roles(Role.ADMIN)
-  @Get()
-  findAll() {
-    return this.ordersService.findAll();
-  }
-
-  @Auth(AuthType.Bearer)
-  @Get('my')
-  findMine(@CurrentUser() user: CurrentUserData) {
-    return this.ordersService.findMine(user.id);
+  async create(
+    @Body() dto: CreateOrderDto,
+    @CurrentUser() user?: CurrentUserData,
+  ): Promise<OrderResponseDto> {
+    const order = await this.ordersService.create(dto, user);
+    return plainToInstance(OrderResponseDto, order, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Auth(AuthType.None)
   @Get(':orderNumber')
-  findByOrderNumber(@Param('orderNumber') orderNumber: string) {
-    return this.ordersService.findByOrderNumber(orderNumber);
-  }
-
-  @Roles(Role.ADMIN)
-  @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
-    return this.ordersService.updateStatus(id, dto);
+  async findByOrderNumber(
+    @Param('orderNumber') orderNumber: string,
+  ): Promise<OrderResponseDto> {
+    const order = await this.ordersService.findByOrderNumber(orderNumber);
+    return plainToInstance(OrderResponseDto, order, {
+      excludeExtraneousValues: true,
+    });
   }
 }
