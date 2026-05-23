@@ -13,11 +13,7 @@ import { Role } from '../users/enums/role.enum';
 import { ReviewStatus } from './enums/review-status.enum';
 import { FilterReviewsQueryDto } from './dto/filter-reviews-query.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
-
-export interface Paginated<T> {
-  data: T[];
-  total: number;
-}
+import { Paginated } from '../common/dto/paginated-response.dto';
 
 @Injectable()
 export class ReviewsService {

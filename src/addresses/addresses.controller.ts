@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -63,10 +64,12 @@ export class AddressesController {
   @ApiBody({ type: CreateSavedAddressDto })
   @ApiOkResponse({ type: SavedAddressResponseDto })
   @ApiBadRequestResponse({ type: ErrorResponseDto })
-  @ApiNotFoundResponse({ description: 'Address not found or not owned by current user' })
+  @ApiNotFoundResponse({
+    description: 'Address not found or not owned by current user',
+  })
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: CurrentUserData,
     @Body() dto: CreateSavedAddressDto,
   ) {
@@ -76,10 +79,15 @@ export class AddressesController {
   @ApiOperation({ summary: 'Delete a saved address' })
   @ApiParam({ name: 'id', description: 'Address UUID' })
   @ApiNoContentResponse({ description: 'Address deleted' })
-  @ApiNotFoundResponse({ description: 'Address not found or not owned by current user' })
+  @ApiNotFoundResponse({
+    description: 'Address not found or not owned by current user',
+  })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string, @CurrentUser() user: CurrentUserData) {
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
     return this.addressesService.remove(id, user.id);
   }
 }

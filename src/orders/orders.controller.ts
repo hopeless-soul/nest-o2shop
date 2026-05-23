@@ -26,7 +26,8 @@ export class OrdersController {
 
   @ApiOperation({
     summary: 'Place a new order',
-    description: 'Works for both guest and authenticated users. Provide guestEmail for guest checkout.',
+    description:
+      'Works for both guest and authenticated users. Provide guestEmail for guest checkout.',
   })
   @ApiBody({ type: CreateOrderDto })
   @ApiCreatedResponse({ type: OrderResponseDto })

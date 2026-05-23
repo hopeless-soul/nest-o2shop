@@ -5,14 +5,22 @@ import { ReviewStatus } from '../enums/review-status.enum';
 
 export class FilterReviewsQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ format: 'uuid' })
-  @IsOptional() @IsUUID() productId?: string;
+  @IsOptional()
+  @IsUUID()
+  productId?: string;
 
   @ApiPropertyOptional({ enum: ReviewStatus, enumName: 'ReviewStatus' })
-  @IsOptional() @IsEnum(ReviewStatus) status?: ReviewStatus;
+  @IsOptional()
+  @IsEnum(ReviewStatus)
+  status?: ReviewStatus;
 
   @ApiPropertyOptional({ format: 'uuid' })
-  @IsOptional() @IsUUID() userId?: string;
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
 
   @ApiPropertyOptional({ example: 'great quality' })
-  @IsOptional() @IsString() search?: string;
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

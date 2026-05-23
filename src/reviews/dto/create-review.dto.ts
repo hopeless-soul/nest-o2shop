@@ -27,7 +27,10 @@ export class CreateReviewDto {
   @IsString()
   content: string;
 
-  @ApiPropertyOptional({ type: [String], example: ['https://example.com/photo.jpg'] })
+  @ApiPropertyOptional({
+    type: [String],
+    example: ['https://example.com/photo.jpg'],
+  })
   @IsOptional()
   @IsString({ each: true })
   photoUrls?: string[];

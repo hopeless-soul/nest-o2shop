@@ -24,7 +24,11 @@ export class CreateShippingMethodDto {
   @Length(3, 3)
   currency: string;
 
-  @ApiPropertyOptional({ minimum: 1, example: 5, description: 'Estimated delivery days' })
+  @ApiPropertyOptional({
+    minimum: 1,
+    example: 5,
+    description: 'Estimated delivery days',
+  })
   @IsOptional()
   @IsInt()
   @Min(1)

@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Query,
 } from '@nestjs/common';
@@ -27,7 +28,10 @@ import { ReviewsService } from './reviews.service';
 import { UpdateReviewStatusDto } from './dto/update-review-status.dto';
 import { FilterReviewsQueryDto } from './dto/filter-reviews-query.dto';
 import { AdminReviewResponseDto } from './dto/review-response.dto';
-import { PaginatedResponseDto, PaginatedDto } from '../common/dto/paginated-response.dto';
+import {
+  PaginatedResponseDto,
+  PaginatedDto,
+} from '../common/dto/paginated-response.dto';
 import { ErrorResponseDto } from '../common/dto/error-response.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
@@ -71,7 +75,7 @@ export class AdminReviewsController {
   @ApiNotFoundResponse({ description: 'Review not found' })
   @Patch(':id/status')
   async updateStatus(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateReviewStatusDto,
   ): Promise<AdminReviewResponseDto> {
     const review = await this.reviewsService.updateStatus(id, dto);
@@ -86,7 +90,7 @@ export class AdminReviewsController {
   @ApiNotFoundResponse({ description: 'Review not found' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.reviewsService.removeAdmin(id);
   }
 }

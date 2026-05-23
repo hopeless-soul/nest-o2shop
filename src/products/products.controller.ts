@@ -54,7 +54,10 @@ export class ProductsController {
     description:
       'Fetch a single published product by its URL slug, including all variants, photos, and category info.',
   })
-  @ApiParam({ name: 'name', description: 'Product URL slug (e.g. oversized_hoodie)' })
+  @ApiParam({
+    name: 'name',
+    description: 'Product URL slug (e.g. oversized_hoodie)',
+  })
   @ApiOkResponse({ type: ProductResponseDto })
   @ApiNotFoundResponse({ description: 'Product not found' })
   @Auth(AuthType.None)

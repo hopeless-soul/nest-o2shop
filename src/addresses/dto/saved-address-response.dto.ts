@@ -16,23 +16,32 @@ class AddressResponseDto {
 
 export class SavedAddressResponseDto {
   @ApiProperty({ format: 'uuid' })
-  @Expose() id: string;
+  @Expose()
+  id: string;
 
   @ApiProperty({ example: 'Home' })
-  @Expose() name: string;
+  @Expose()
+  name: string;
 
   @ApiProperty({ type: () => AddressResponseDto })
-  @Expose() @Type(() => AddressResponseDto) shippingAddress: AddressResponseDto;
+  @Expose()
+  @Type(() => AddressResponseDto)
+  shippingAddress: AddressResponseDto;
 
   @ApiProperty({ type: () => AddressResponseDto })
-  @Expose() @Type(() => AddressResponseDto) billingAddress: AddressResponseDto;
+  @Expose()
+  @Type(() => AddressResponseDto)
+  billingAddress: AddressResponseDto;
 
   @ApiProperty({ example: false })
-  @Expose() billingIsSameAsShipping: boolean;
+  @Expose()
+  billingIsSameAsShipping: boolean;
 
   @ApiProperty()
-  @Expose() createdAt: Date;
+  @Expose()
+  createdAt: Date;
 
   @ApiProperty()
-  @Expose() updatedAt: Date;
+  @Expose()
+  updatedAt: Date;
 }

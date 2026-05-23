@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Post,
   Query,
 } from '@nestjs/common';
@@ -27,7 +28,10 @@ import { plainToInstance } from 'class-transformer';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewResponseDto } from './dto/review-response.dto';
-import { PaginatedResponseDto, PaginatedDto } from '../common/dto/paginated-response.dto';
+import {
+  PaginatedResponseDto,
+  PaginatedDto,
+} from '../common/dto/paginated-response.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
@@ -47,7 +51,7 @@ export class ReviewsController {
   @Auth(AuthType.None)
   @Get('products/:productId/reviews')
   async findByProduct(
-    @Param('productId') productId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
     @Query() query: PaginationQueryDto,
   ): Promise<PaginatedResponseDto<ReviewResponseDto>> {
     const result = await this.reviewsService.findByProduct(productId, query);
@@ -72,7 +76,7 @@ export class ReviewsController {
   @Auth(AuthType.None)
   @Post('products/:productId/reviews')
   async create(
-    @Param('productId') productId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
     @Body() dto: CreateReviewDto,
     @CurrentUser() user?: CurrentUserData,
   ): Promise<ReviewResponseDto> {
@@ -93,7 +97,7 @@ export class ReviewsController {
   @Delete('reviews/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: CurrentUserData,
   ): Promise<void> {
     await this.reviewsService.remove(id, user);

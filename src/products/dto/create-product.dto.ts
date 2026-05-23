@@ -46,7 +46,11 @@ const ProductDescriptionSchema = {
 };
 
 export class CreateProductDto {
-  @ApiProperty({ example: 'blue_widget', pattern: '^[a-z0-9_]+$', description: 'Unique URL-safe identifier (lowercase, underscores)' })
+  @ApiProperty({
+    example: 'blue_widget',
+    pattern: '^[a-z0-9_]+$',
+    description: 'Unique URL-safe identifier (lowercase, underscores)',
+  })
   @IsString()
   @Matches(/^[a-z0-9_]+$/, {
     message: 'name must be lowercase alphanumeric with underscores',
@@ -57,7 +61,10 @@ export class CreateProductDto {
   @IsString()
   displayName: string;
 
-  @ApiPropertyOptional({ format: 'uuid', description: 'ID of the collection to assign' })
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'ID of the collection to assign',
+  })
   @IsOptional()
   @IsString()
   collectionId?: string;

@@ -9,7 +9,10 @@ export class UpdateOrderStatusDto {
   @IsEnum(PaymentStatus)
   paymentStatus?: PaymentStatus;
 
-  @ApiPropertyOptional({ enum: FulfillmentStatus, enumName: 'FulfillmentStatus' })
+  @ApiPropertyOptional({
+    enum: FulfillmentStatus,
+    enumName: 'FulfillmentStatus',
+  })
   @IsOptional()
   @IsEnum(FulfillmentStatus)
   fulfillmentStatus?: FulfillmentStatus;

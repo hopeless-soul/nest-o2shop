@@ -48,10 +48,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   async validate(payload: AccessTokenPayload): Promise<CurrentUserData> {
     const user = await this.usersService.findById(payload.sub, {
-      select: { tokenVersion: true, role: true },
+      select: { tokenVersion: true, role: true, isActive: true },
     });
-    if (!user) {
-      throw new UnauthorizedException('Invalid token payload');
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Account is inactive');
     }
     if (user.tokenVersion !== payload.tokenVersion) {
       throw new UnauthorizedException('Token is outdated');

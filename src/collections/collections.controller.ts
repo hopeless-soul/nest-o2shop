@@ -9,7 +9,10 @@ import {
 import { plainToInstance } from 'class-transformer';
 import { CollectionsService } from './collections.service';
 import { CollectionResponseDto } from './dto/collection-response.dto';
-import { PaginatedResponseDto, PaginatedDto } from '../common/dto/paginated-response.dto';
+import {
+  PaginatedResponseDto,
+  PaginatedDto,
+} from '../common/dto/paginated-response.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';

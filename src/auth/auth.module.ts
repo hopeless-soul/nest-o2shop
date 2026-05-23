@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
@@ -13,10 +14,12 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { HashingModule } from '../common/hashing/hashing.module';
 import { AuthenticationGuard } from './guards/authentication.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { RefreshToken } from './entities/refresh-token.entity';
 import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([RefreshToken]),
     UsersModule,
     HashingModule,
     JwtModule.registerAsync({
@@ -34,16 +37,8 @@ import { APP_GUARD } from '@nestjs/core';
     JwtAuthGuard,
     LocalAuthGuard,
     LocalStrategy,
-    AuthenticationGuard,
-    RolesGuard,
-    {
-      provide: APP_GUARD,
-      useClass: AuthenticationGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
+    { provide: APP_GUARD, useClass: AuthenticationGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
 export class AuthModule {}

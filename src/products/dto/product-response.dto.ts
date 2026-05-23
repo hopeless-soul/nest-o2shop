@@ -58,25 +58,32 @@ class SubCategorySummaryDto {
 
 export class ProductResponseDto {
   @ApiProperty({ format: 'uuid' })
-  @Expose() id: string;
+  @Expose()
+  id: string;
 
   @ApiProperty({ example: 'blue_widget' })
-  @Expose() name: string;
+  @Expose()
+  name: string;
 
   @ApiProperty({ example: 'Blue Widget' })
-  @Expose() displayName: string;
+  @Expose()
+  displayName: string;
 
   @ApiProperty({ example: 29.99 })
-  @Expose() basePrice: number;
+  @Expose()
+  basePrice: number;
 
   @ApiProperty({ example: 'USD' })
-  @Expose() currency: string;
+  @Expose()
+  currency: string;
 
   @ApiProperty(ProductDescriptionSchema as any)
-  @Expose() description: ProductDescription;
+  @Expose()
+  description: ProductDescription;
 
   @ApiPropertyOptional({ nullable: true, example: 4.5 })
-  @Expose() rating?: number | null;
+  @Expose()
+  rating?: number | null;
 
   @ApiProperty({ type: () => ProductPhotoResponseDto, isArray: true })
   @Expose()
@@ -94,10 +101,14 @@ export class ProductResponseDto {
   variants: ProductVariantResponseDto[];
 
   @ApiPropertyOptional({ type: () => CollectionSummaryDto })
-  @Expose() @Type(() => CollectionSummaryDto) collection?: CollectionSummaryDto;
+  @Expose()
+  @Type(() => CollectionSummaryDto)
+  collection?: CollectionSummaryDto;
 
   @ApiProperty({ type: () => CategorySummaryDto })
-  @Expose() @Type(() => CategorySummaryDto) category: CategorySummaryDto;
+  @Expose()
+  @Type(() => CategorySummaryDto)
+  category: CategorySummaryDto;
 
   @ApiProperty({ type: () => SubCategorySummaryDto })
   @Expose()
@@ -107,14 +118,18 @@ export class ProductResponseDto {
 
 export class AdminProductResponseDto extends ProductResponseDto {
   @ApiProperty({ example: true })
-  @Expose() isPublished: boolean;
+  @Expose()
+  isPublished: boolean;
 
   @ApiPropertyOptional({ nullable: true, example: null })
-  @Expose() deletedAt: Date | null;
+  @Expose()
+  deletedAt: Date | null;
 
   @ApiProperty()
-  @Expose() createdAt: Date;
+  @Expose()
+  createdAt: Date;
 
   @ApiProperty()
-  @Expose() updatedAt: Date;
+  @Expose()
+  updatedAt: Date;
 }

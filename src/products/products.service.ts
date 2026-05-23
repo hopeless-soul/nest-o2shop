@@ -1,4 +1,6 @@
 /// <reference types="multer" />
+import { randomUUID } from 'crypto';
+import { extname } from 'path';
 import {
   ConflictException,
   Injectable,
@@ -19,11 +21,7 @@ import { FilterProductsQueryDto } from './dto/filter-products-query.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { FilterReviewsQueryDto } from '../reviews/dto/filter-reviews-query.dto';
 import { Review } from '../reviews/entities/review.entity';
-
-export interface Paginated<T> {
-  data: T[];
-  total: number;
-}
+import { Paginated } from '../common/dto/paginated-response.dto';
 
 @Injectable()
 export class ProductsService {
@@ -232,7 +230,8 @@ export class ProductsService {
     altText?: string,
   ): Promise<ProductPhoto> {
     await this.findById(productId);
-    const subPath = `products/${productId}/${Date.now()}-${file.originalname}`;
+    const ext = extname(file.originalname).toLowerCase() || '.bin';
+    const subPath = `products/${productId}/${randomUUID()}${ext}`;
     const url = await this.storageService.save(file, subPath);
     return this.photoRepo.save(
       this.photoRepo.create({ productId, url, altText }),

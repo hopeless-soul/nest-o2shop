@@ -4,37 +4,51 @@ import { ReviewStatus } from '../enums/review-status.enum';
 
 export class ReviewResponseDto {
   @ApiProperty({ format: 'uuid' })
-  @Expose() id: string;
+  @Expose()
+  id: string;
 
   @ApiProperty({ format: 'uuid' })
-  @Expose() productId: string;
+  @Expose()
+  productId: string;
 
   @ApiPropertyOptional({ format: 'uuid' })
-  @Expose() userId?: string;
+  @Expose()
+  userId?: string;
 
   @ApiProperty({ example: 'Jane D.' })
-  @Expose() displayName: string;
+  @Expose()
+  displayName: string;
 
   @ApiProperty({ minimum: 1, maximum: 10, example: 8 })
-  @Expose() rating: number;
+  @Expose()
+  rating: number;
 
   @ApiProperty({ example: 'Great quality, fast shipping!' })
-  @Expose() content: string;
+  @Expose()
+  content: string;
 
-  @ApiPropertyOptional({ type: [String], example: ['https://example.com/photo.jpg'] })
-  @Expose() photoUrls?: string[];
+  @ApiPropertyOptional({
+    type: [String],
+    example: ['https://example.com/photo.jpg'],
+  })
+  @Expose()
+  photoUrls?: string[];
 
   @ApiProperty()
-  @Expose() createdAt: Date;
+  @Expose()
+  createdAt: Date;
 }
 
 export class AdminReviewResponseDto extends ReviewResponseDto {
   @ApiProperty({ example: 'user@example.com' })
-  @Expose() email: string;
+  @Expose()
+  email: string;
 
   @ApiProperty({ enum: ReviewStatus, enumName: 'ReviewStatus' })
-  @Expose() status: ReviewStatus;
+  @Expose()
+  status: ReviewStatus;
 
   @ApiProperty()
-  @Expose() updatedAt: Date;
+  @Expose()
+  updatedAt: Date;
 }

@@ -13,7 +13,10 @@ import { AddressesService } from '../addresses/addresses.service';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 import { OrderResponseDto } from '../orders/dto/order-response.dto';
 import { SavedAddressResponseDto } from '../addresses/dto/saved-address-response.dto';
-import { PaginatedResponseDto, PaginatedDto } from '../common/dto/paginated-response.dto';
+import {
+  PaginatedResponseDto,
+  PaginatedDto,
+} from '../common/dto/paginated-response.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';

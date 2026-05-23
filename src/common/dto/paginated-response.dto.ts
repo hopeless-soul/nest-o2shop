@@ -1,5 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+export interface Paginated<T> {
+  data: T[];
+  total: number;
+}
+
 export class PaginatedResponseDto<T> {
   data: T[];
 

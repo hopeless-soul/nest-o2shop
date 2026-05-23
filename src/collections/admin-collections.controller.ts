@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -29,7 +30,10 @@ import { CollectionsService } from './collections.service';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
 import { AdminCollectionResponseDto } from './dto/collection-response.dto';
-import { PaginatedResponseDto, PaginatedDto } from '../common/dto/paginated-response.dto';
+import {
+  PaginatedResponseDto,
+  PaginatedDto,
+} from '../common/dto/paginated-response.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { ErrorResponseDto } from '../common/dto/error-response.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
@@ -71,7 +75,9 @@ export class AdminCollectionsController {
   @ApiOkResponse({ type: AdminCollectionResponseDto })
   @ApiNotFoundResponse({ description: 'Collection not found' })
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<AdminCollectionResponseDto> {
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<AdminCollectionResponseDto> {
     const collection = await this.collectionsService.findById(id);
     return plainToInstance(AdminCollectionResponseDto, collection, {
       excludeExtraneousValues: true,
@@ -100,7 +106,7 @@ export class AdminCollectionsController {
   @ApiNotFoundResponse({ description: 'Collection not found' })
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateCollectionDto,
   ): Promise<AdminCollectionResponseDto> {
     const collection = await this.collectionsService.update(id, dto);
@@ -115,7 +121,7 @@ export class AdminCollectionsController {
   @ApiNotFoundResponse({ description: 'Collection not found' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.collectionsService.remove(id);
   }
 }

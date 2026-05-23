@@ -19,64 +19,87 @@ class AddressResponseDto {
 
 export class OrderResponseDto {
   @ApiProperty({ format: 'uuid' })
-  @Expose() id: string;
+  @Expose()
+  id: string;
 
   @ApiProperty({ example: 'ORD-20240101-0001' })
-  @Expose() orderNumber: string;
+  @Expose()
+  orderNumber: string;
 
   @ApiProperty({ enum: PaymentStatus, enumName: 'PaymentStatus' })
-  @Expose() paymentStatus: PaymentStatus;
+  @Expose()
+  paymentStatus: PaymentStatus;
 
   @ApiProperty({ enum: FulfillmentStatus, enumName: 'FulfillmentStatus' })
-  @Expose() fulfillmentStatus: FulfillmentStatus;
+  @Expose()
+  fulfillmentStatus: FulfillmentStatus;
 
   @ApiProperty({ example: 65.97 })
-  @Expose() totalAmount: number;
+  @Expose()
+  totalAmount: number;
 
   @ApiProperty({ example: 'USD' })
-  @Expose() totalCurrency: string;
+  @Expose()
+  totalCurrency: string;
 
   @ApiProperty({ example: 'Standard Shipping' })
-  @Expose() shippingMethodName: string;
+  @Expose()
+  shippingMethodName: string;
 
   @ApiProperty({ example: 5.99 })
-  @Expose() shippingPrice: number;
+  @Expose()
+  shippingPrice: number;
 
   @ApiProperty({ example: 'USD' })
-  @Expose() shippingCurrency: string;
+  @Expose()
+  shippingCurrency: string;
 
   @ApiProperty({ type: () => AddressResponseDto })
-  @Expose() @Type(() => AddressResponseDto) shippingAddress: AddressResponseDto;
+  @Expose()
+  @Type(() => AddressResponseDto)
+  shippingAddress: AddressResponseDto;
 
   @ApiProperty({ type: () => AddressResponseDto })
-  @Expose() @Type(() => AddressResponseDto) billingAddress: AddressResponseDto;
+  @Expose()
+  @Type(() => AddressResponseDto)
+  billingAddress: AddressResponseDto;
 
   @ApiProperty({ type: () => OrderItemResponseDto, isArray: true })
-  @Expose() @Type(() => OrderItemResponseDto) items: OrderItemResponseDto[];
+  @Expose()
+  @Type(() => OrderItemResponseDto)
+  items: OrderItemResponseDto[];
 
   @ApiProperty()
-  @Expose() createdAt: Date;
+  @Expose()
+  createdAt: Date;
 }
 
 export class AdminOrderResponseDto extends OrderResponseDto {
   @ApiPropertyOptional({ format: 'uuid' })
-  @Expose() userId?: string;
+  @Expose()
+  userId?: string;
 
   @ApiPropertyOptional({ example: 'guest@example.com' })
-  @Expose() guestEmail?: string;
+  @Expose()
+  guestEmail?: string;
 
   @ApiPropertyOptional({ example: 'Jane' })
-  @Expose() guestFirstName?: string;
+  @Expose()
+  guestFirstName?: string;
 
   @ApiPropertyOptional({ example: 'Doe' })
-  @Expose() guestLastName?: string;
+  @Expose()
+  guestLastName?: string;
 
   @ApiPropertyOptional()
-  @Expose() paymentProviderId?: string;
+  @Expose()
+  paymentProviderId?: string;
 
   @ApiPropertyOptional()
-  @Expose() paymentProviderRef?: string;
+  @Expose()
+  paymentProviderRef?: string;
 
   @ApiProperty()
-  @Expose() updatedAt: Date;
+  @Expose()
+  updatedAt: Date;
 }

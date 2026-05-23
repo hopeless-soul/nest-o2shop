@@ -12,11 +12,7 @@ import { HashingService } from '../common/hashing/hashing.service';
 import { toCurrentUserData } from '../auth/types';
 import { FilterUsersQueryDto } from './dto/filter-users-query.dto';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
-
-export interface Paginated<T> {
-  data: T[];
-  total: number;
-}
+import { Paginated } from '../common/dto/paginated-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -135,6 +131,10 @@ export class UsersService {
     if (dto.isActive !== undefined) user.isActive = dto.isActive;
     if (dto.resetTokenVersion) user.tokenVersion += 1;
     return this.userRepository.save(user);
+  }
+
+  async incrementTokenVersion(id: string): Promise<void> {
+    await this.userRepository.increment({ id }, 'tokenVersion', 1);
   }
 
   async softDeleteAdmin(id: string): Promise<void> {

@@ -12,22 +12,20 @@ import {
   Tokens,
 } from './types';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
+import { CreateLocalUserDto } from '../users/dto/create-local-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { HashingService } from '../common/hashing/hashing.service';
-
-/**
- * TODO:
- *    -- implement refresh tokens rotation (currently just issues both tokens)
- */
+import { RefreshToken } from './entities/refresh-token.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectRepository(RefreshToken)
+    private readonly refreshTokenRepo: Repository<RefreshToken>,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -46,10 +44,11 @@ export class AuthService {
    * @param data - Normalized profile data extracted from the OAuth provider
    * @returns The found or newly created user as CurrentUserData
    */
-  async validateOAuthUser(data: OAuthPayload): Promise<CurrentUserData> {
-    console.log('validateUser -->');
-    console.log(data);
+  async register(dto: CreateLocalUserDto): Promise<CurrentUserData> {
+    return this.usersService.createFromLocal(dto);
+  }
 
+  async validateOAuthUser(data: OAuthPayload): Promise<CurrentUserData> {
     let user = await this.usersService.findByEmail(data.email);
 
     if (!user) {
@@ -137,7 +136,7 @@ export class AuthService {
         },
       ),
     ]);
-    await this.saveRefreshToken(user.id, rtId, rt);
+    await this.saveRefreshToken(user.id, rtId);
     return {
       access_token: at,
       refresh_token: rt,
@@ -170,14 +169,56 @@ export class AuthService {
     );
   }
 
-  // TODO:
-  /**
-   * Hashes and persists a refresh token for the given user.
-   * Creates a new entry if none exists, or replaces the existing one (single-session enforcement).
-   */
+  async refreshTokens(userId: string, tokenId: string): Promise<Tokens> {
+    const stored = await this.refreshTokenRepo.findOne({
+      where: { userId, tokenId },
+    });
+
+    if (!stored || stored.expiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    const user = await this.usersService.findById(userId, {
+      select: { id: true, email: true, role: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    await this.refreshTokenRepo.delete({ id: stored.id });
+
+    return this.issueTokens({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+  }
+
+  async logout(userId: string): Promise<void> {
+    await Promise.all([
+      this.usersService.incrementTokenVersion(userId),
+      this.refreshTokenRepo.delete({ userId }),
+    ]);
+  }
+
   private async saveRefreshToken(
     userId: string,
     refreshTokenId: string,
-    refreshToken: string,
-  ) {}
+  ): Promise<void> {
+    await this.refreshTokenRepo.delete({ userId });
+
+    const ttl = parseInt(
+      this.configService.getOrThrow('JWT_REFRESH_TOKEN_TTL'),
+    );
+    const expiresAt = new Date(Date.now() + ttl * 1000);
+
+    await this.refreshTokenRepo.save(
+      this.refreshTokenRepo.create({
+        userId,
+        tokenId: refreshTokenId,
+        expiresAt,
+      }),
+    );
+  }
 }

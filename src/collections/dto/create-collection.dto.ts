@@ -2,7 +2,10 @@ import { IsBoolean, IsOptional, IsString, Matches } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateCollectionDto {
-  @ApiProperty({ example: 'summer-2025', pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' })
+  @ApiProperty({
+    example: 'summer-2025',
+    pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
+  })
   @IsString()
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
     message: 'slug must be kebab-case (e.g. summer-2025)',

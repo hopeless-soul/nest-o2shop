@@ -3,14 +3,18 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ProductPhotoResponseDto {
   @ApiProperty({ format: 'uuid' })
-  @Expose() id: string;
+  @Expose()
+  id: string;
 
   @ApiProperty({ example: '/uploads/photo.jpg' })
-  @Expose() url: string;
+  @Expose()
+  url: string;
 
   @ApiPropertyOptional({ example: 'Front view of product' })
-  @Expose() altText?: string;
+  @Expose()
+  altText?: string;
 
   @ApiProperty({ example: 0 })
-  @Expose() sortOrder: number;
+  @Expose()
+  sortOrder: number;
 }

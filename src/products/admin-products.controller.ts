@@ -7,12 +7,14 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import { extname } from 'path';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -42,12 +44,28 @@ import { AdminProductResponseDto } from './dto/product-response.dto';
 import { ProductVariantResponseDto } from './dto/product-variant-response.dto';
 import { ProductPhotoResponseDto } from './dto/product-photo-response.dto';
 import { AdminReviewResponseDto } from '../reviews/dto/review-response.dto';
-import { PaginatedResponseDto, PaginatedDto } from '../common/dto/paginated-response.dto';
+import {
+  PaginatedResponseDto,
+  PaginatedDto,
+} from '../common/dto/paginated-response.dto';
 import { ErrorResponseDto } from '../common/dto/error-response.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/enums/role.enum';
+
+const ALLOWED_IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+
+const imageFileFilter = (
+  _req: unknown,
+  file: Express.Multer.File,
+  cb: (err: Error | null, accept: boolean) => void,
+) => {
+  cb(
+    null,
+    ALLOWED_IMAGE_EXTS.includes(extname(file.originalname).toLowerCase()),
+  );
+};
 
 @ApiTags('Admin – Products')
 @ApiBearerAuth('access_token')
@@ -83,7 +101,9 @@ export class AdminProductsController {
   @ApiOkResponse({ type: AdminProductResponseDto })
   @ApiNotFoundResponse({ description: 'Product not found' })
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<AdminProductResponseDto> {
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<AdminProductResponseDto> {
     const product = await this.productsService.findByIdAdmin(id);
     return plainToInstance(AdminProductResponseDto, product, {
       excludeExtraneousValues: true,
@@ -112,7 +132,7 @@ export class AdminProductsController {
   @ApiNotFoundResponse({ description: 'Product not found' })
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProductDto,
   ): Promise<AdminProductResponseDto> {
     const product = await this.productsService.update(id, dto);
@@ -127,7 +147,7 @@ export class AdminProductsController {
   @ApiNotFoundResponse({ description: 'Product not found' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async softDelete(@Param('id') id: string): Promise<void> {
+  async softDelete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.productsService.softDelete(id);
   }
 
@@ -139,7 +159,7 @@ export class AdminProductsController {
   @ApiNotFoundResponse({ description: 'Product not found' })
   @Post(':id/variants')
   async createVariant(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CreateVariantDto,
   ): Promise<ProductVariantResponseDto> {
     const variant = await this.productsService.createVariant(id, dto);
@@ -157,8 +177,8 @@ export class AdminProductsController {
   @ApiNotFoundResponse({ description: 'Product or variant not found' })
   @Patch(':id/variants/:variantId')
   async updateVariant(
-    @Param('id') id: string,
-    @Param('variantId') variantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('variantId', ParseUUIDPipe) variantId: string,
     @Body() dto: UpdateVariantDto,
   ): Promise<ProductVariantResponseDto> {
     const variant = await this.productsService.updateVariant(
@@ -179,21 +199,24 @@ export class AdminProductsController {
   @Delete(':id/variants/:variantId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteVariant(
-    @Param('id') id: string,
-    @Param('variantId') variantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('variantId', ParseUUIDPipe) variantId: string,
   ): Promise<void> {
     await this.productsService.deleteVariant(id, variantId);
   }
 
   @ApiOperation({ summary: 'Set the default variant for a product' })
   @ApiParam({ name: 'id', description: 'Product UUID' })
-  @ApiParam({ name: 'variantId', description: 'Variant UUID to set as default' })
+  @ApiParam({
+    name: 'variantId',
+    description: 'Variant UUID to set as default',
+  })
   @ApiOkResponse({ type: AdminProductResponseDto })
   @ApiNotFoundResponse({ description: 'Product or variant not found' })
   @Post(':id/variants/:variantId/default')
   async setDefaultVariant(
-    @Param('id') id: string,
-    @Param('variantId') variantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('variantId', ParseUUIDPipe) variantId: string,
   ): Promise<AdminProductResponseDto> {
     const product = await this.productsService.setDefaultVariant(id, variantId);
     return plainToInstance(AdminProductResponseDto, product, {
@@ -204,7 +227,11 @@ export class AdminProductsController {
   @ApiOperation({ summary: 'Upload a photo for a product' })
   @ApiConsumes('multipart/form-data')
   @ApiParam({ name: 'id', description: 'Product UUID' })
-  @ApiQuery({ name: 'altText', required: false, description: 'Alt text for the image' })
+  @ApiQuery({
+    name: 'altText',
+    required: false,
+    description: 'Alt text for the image',
+  })
   @ApiBody({
     schema: {
       type: 'object',
@@ -220,9 +247,14 @@ export class AdminProductsController {
   })
   @ApiCreatedResponse({ type: ProductPhotoResponseDto })
   @Post(':id/photos')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: imageFileFilter,
+    }),
+  )
   async addPhoto(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
     @Query('altText') altText?: string,
   ): Promise<ProductPhotoResponseDto> {
@@ -240,19 +272,21 @@ export class AdminProductsController {
   @Delete(':id/photos/:photoId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deletePhoto(
-    @Param('id') id: string,
-    @Param('photoId') photoId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('photoId', ParseUUIDPipe) photoId: string,
   ): Promise<void> {
     await this.productsService.deletePhoto(id, photoId);
   }
 
-  @ApiOperation({ summary: 'List all reviews for a product (admin view, all statuses)' })
+  @ApiOperation({
+    summary: 'List all reviews for a product (admin view, all statuses)',
+  })
   @ApiParam({ name: 'productId', description: 'Product UUID' })
   @ApiOkResponse({ type: PaginatedDto(AdminReviewResponseDto) })
   @ApiNotFoundResponse({ description: 'Product not found' })
   @Get(':productId/reviews')
   async findReviews(
-    @Param('productId') productId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
     @Query() query: FilterReviewsQueryDto,
   ): Promise<PaginatedResponseDto<AdminReviewResponseDto>> {
     const result = await this.productsService.findProductReviews(

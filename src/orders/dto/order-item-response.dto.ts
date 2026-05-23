@@ -3,26 +3,34 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class OrderItemResponseDto {
   @ApiProperty({ format: 'uuid' })
-  @Expose() id: string;
+  @Expose()
+  id: string;
 
   @ApiPropertyOptional({ format: 'uuid' })
-  @Expose() productId?: string;
+  @Expose()
+  productId?: string;
 
   @ApiProperty({ example: 'Blue Widget' })
-  @Expose() productName: string;
+  @Expose()
+  productName: string;
 
   @ApiProperty({ example: 'BLU-M-001' })
-  @Expose() productSku: string;
+  @Expose()
+  productSku: string;
 
   @ApiProperty({ example: 29.99 })
-  @Expose() productPrice: number;
+  @Expose()
+  productPrice: number;
 
   @ApiProperty({ example: 'USD' })
-  @Expose() productCurrency: string;
+  @Expose()
+  productCurrency: string;
 
   @ApiProperty({ example: 2 })
-  @Expose() quantity: number;
+  @Expose()
+  quantity: number;
 
   @ApiProperty({ example: 59.98 })
-  @Expose() total: number;
+  @Expose()
+  total: number;
 }

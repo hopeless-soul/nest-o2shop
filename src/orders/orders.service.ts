@@ -14,11 +14,7 @@ import { ShippingService } from '../shipping/shipping.service';
 import { CurrentUserData } from '../auth/types';
 import { ProductVariant } from '../products/entities/product-variant.entity';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
-
-export interface Paginated<T> {
-  data: T[];
-  total: number;
-}
+import { Paginated } from '../common/dto/paginated-response.dto';
 
 @Injectable()
 export class OrdersService {

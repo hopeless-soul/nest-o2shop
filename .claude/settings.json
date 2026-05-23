@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/Users/hk/.claude/plans/**)"
+      "Read(//c/Users/hk/.claude/plans/**)",
+      "Bash(Get-ChildItem -Recurse -Path \"c:\\\\Users\\\\hk\\\\Documents\\\\Development\\\\nest\\\\nest-o2shop\\\\src\" -Filter \"*.entity.ts\")"
     ]
   }
 }

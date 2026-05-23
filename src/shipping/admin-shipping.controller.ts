@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -28,7 +29,10 @@ import { plainToInstance } from 'class-transformer';
 import { ShippingService } from './shipping.service';
 import { CreateShippingMethodDto } from './dto/create-shipping-method.dto';
 import { ShippingMethodResponseDto } from './dto/shipping-method-response.dto';
-import { PaginatedResponseDto, PaginatedDto } from '../common/dto/paginated-response.dto';
+import {
+  PaginatedResponseDto,
+  PaginatedDto,
+} from '../common/dto/paginated-response.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { ErrorResponseDto } from '../common/dto/error-response.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
@@ -83,7 +87,7 @@ export class AdminShippingController {
   @ApiNotFoundResponse({ description: 'Shipping method not found' })
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CreateShippingMethodDto,
   ): Promise<ShippingMethodResponseDto> {
     const method = await this.shippingService.update(id, dto);
@@ -98,7 +102,7 @@ export class AdminShippingController {
   @ApiNotFoundResponse({ description: 'Shipping method not found' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.shippingService.remove(id);
   }
 }

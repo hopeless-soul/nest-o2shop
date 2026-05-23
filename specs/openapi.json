@@ -93,6 +93,39 @@
         ]
       }
     },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "New access and refresh tokens issued; cookies updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "refresh_token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, or already-used refresh token"
+          }
+        },
+        "summary": "Exchange refresh token for a new token pair",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/auth/register": {
       "post": {
         "operationId": "AuthController_localRegister",
@@ -130,6 +163,24 @@
           }
         },
         "summary": "Register a new account with email and password",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "delete": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Logged out; cookies cleared"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          }
+        },
+        "summary": "Log out and invalidate all tokens",
         "tags": [
           "Auth"
         ]

@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -32,7 +33,10 @@ import {
   CategoryResponseDto,
   SubCategoryResponseDto,
 } from './dto/category-response.dto';
-import { PaginatedResponseDto, PaginatedDto } from '../common/dto/paginated-response.dto';
+import {
+  PaginatedResponseDto,
+  PaginatedDto,
+} from '../common/dto/paginated-response.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { ErrorResponseDto } from '../common/dto/error-response.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
@@ -85,7 +89,7 @@ export class AdminCategoriesController {
   @ApiNotFoundResponse({ description: 'Category not found' })
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CreateCategoryDto,
   ): Promise<CategoryResponseDto> {
     const category = await this.categoriesService.update(id, dto);
@@ -100,7 +104,7 @@ export class AdminCategoriesController {
   @ApiNotFoundResponse({ description: 'Category not found' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.categoriesService.remove(id);
   }
 
@@ -112,7 +116,7 @@ export class AdminCategoriesController {
   @ApiNotFoundResponse({ description: 'Category not found' })
   @Post(':id/subcategories')
   async createSubCategory(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CreateSubCategoryDto,
   ): Promise<SubCategoryResponseDto> {
     const sub = await this.categoriesService.createSubCategory(id, dto);
@@ -130,8 +134,8 @@ export class AdminCategoriesController {
   @ApiNotFoundResponse({ description: 'Category or subcategory not found' })
   @Patch(':id/subcategories/:subId')
   async updateSubCategory(
-    @Param('id') id: string,
-    @Param('subId') subId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('subId', ParseUUIDPipe) subId: string,
     @Body() dto: CreateSubCategoryDto,
   ): Promise<SubCategoryResponseDto> {
     const sub = await this.categoriesService.updateSubCategory(id, subId, dto);
@@ -148,8 +152,8 @@ export class AdminCategoriesController {
   @Delete(':id/subcategories/:subId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeSubCategory(
-    @Param('id') id: string,
-    @Param('subId') subId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('subId', ParseUUIDPipe) subId: string,
   ): Promise<void> {
     await this.categoriesService.removeSubCategory(id, subId);
   }

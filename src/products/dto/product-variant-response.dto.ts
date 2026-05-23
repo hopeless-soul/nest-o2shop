@@ -4,31 +4,40 @@ import { ProductPhotoResponseDto } from './product-photo-response.dto';
 
 export class ProductVariantResponseDto {
   @ApiProperty({ format: 'uuid' })
-  @Expose() id: string;
+  @Expose()
+  id: string;
 
   @ApiProperty({ format: 'uuid' })
-  @Expose() productId: string;
+  @Expose()
+  productId: string;
 
   @ApiProperty({ example: 'Navy Blue' })
-  @Expose() colorName: string;
+  @Expose()
+  colorName: string;
 
   @ApiProperty({ example: '#001f5b' })
-  @Expose() colorValue: string;
+  @Expose()
+  colorValue: string;
 
   @ApiProperty({ example: 'M' })
-  @Expose() size: string;
+  @Expose()
+  size: string;
 
   @ApiProperty({ example: 'BLU-M-001' })
-  @Expose() sku: string;
+  @Expose()
+  sku: string;
 
   @ApiProperty({ example: 50 })
-  @Expose() stock: number;
+  @Expose()
+  stock: number;
 
   @ApiPropertyOptional({ example: 34.99 })
-  @Expose() priceOverride?: number;
+  @Expose()
+  priceOverride?: number;
 
   @ApiPropertyOptional({ format: 'uuid' })
-  @Expose() mainPhotoId?: string;
+  @Expose()
+  mainPhotoId?: string;
 
   @ApiPropertyOptional({ type: () => ProductPhotoResponseDto })
   @Expose()

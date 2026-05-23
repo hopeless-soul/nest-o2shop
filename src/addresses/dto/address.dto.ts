@@ -28,7 +28,10 @@ export class AddressDto {
   @IsString()
   city: string;
 
-  @ApiProperty({ example: 'US', description: 'ISO 3166-1 alpha-2 country code' })
+  @ApiProperty({
+    example: 'US',
+    description: 'ISO 3166-1 alpha-2 country code',
+  })
   @IsString()
   country: string;
 
