@@ -1,0 +1,32 @@
+GET {{baseUrl}}/shipping-methods
+- In swagger schema says "data" will return "OrderResponseDto", but it's not.
+- Real Response example for http://localhost:3001/shipping-methods:
+``
+{
+  "data": [
+    {
+      "id": "35896eeb-974a-4bd7-b29b-5514ebfc1b12",
+      "name": "Standard Shipping",
+      "price": "4.99",
+      "currency": "USD",
+      "estimatedDays": 7,
+      "isActive": true,
+      "createdAt": "2026-05-22T15:06:18.693Z",
+      "updatedAt": "2026-05-22T15:06:18.693Z"
+    },
+    {
+      "id": "91325992-f159-4952-aacc-2881ca1626a8",
+      "name": "Express Shipping",
+      "price": "12.99",
+      "currency": "USD",
+      "estimatedDays": 2,
+      "isActive": true,
+      "createdAt": "2026-05-22T15:06:18.696Z",
+      "updatedAt": "2026-05-22T15:06:18.696Z"
+    }
+  ],
+  "total": 2,
+  "page": 1,
+  "limit": 20
+}
+```

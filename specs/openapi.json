@@ -1,0 +1,5817 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/auth/google/login": {
+      "get": {
+        "description": "Redirects to the Google consent screen. Not usable from Swagger UI — open this URL directly in a browser.",
+        "operationId": "AuthController_googleLogin",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Redirects to Google consent page"
+          }
+        },
+        "summary": "Initiate Google OAuth 2.0 login",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/google/redirect": {
+      "get": {
+        "description": "Handles redirect from Google. Sets access_token and refresh_token as HttpOnly cookies, then redirects to /.",
+        "operationId": "AuthController_googleCallback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Google OAuth 2.0 callback",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_localLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "strongP@ss1"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns JWT tokens and sets HttpOnly cookies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string",
+                      "description": "JWT access token"
+                    },
+                    "refresh_token": {
+                      "type": "string",
+                      "description": "JWT refresh token"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid email or password"
+          }
+        },
+        "summary": "Login with email and password",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_localRegister",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLocalUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or email already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Register a new account with email and password",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "operationId": "AdminUsersController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "jane",
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Role"
+            }
+          },
+          {
+            "name": "isDeleted",
+            "required": false,
+            "in": "query",
+            "description": "Include soft-deleted users",
+            "schema": {
+              "example": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "createdAfter",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2024-01-01T00:00:00Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "createdBefore",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2024-12-31T23:59:59Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedAdminUserResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List all users with filters",
+        "tags": [
+          "Admin – Users"
+        ]
+      }
+    },
+    "/admin/users/{id}": {
+      "get": {
+        "operationId": "AdminUsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get a user by ID (admin view)",
+        "tags": [
+          "Admin – Users"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminUsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAdminUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a user (role, isActive, token invalidation)",
+        "tags": [
+          "Admin – Users"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminUsersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User deleted"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Soft-delete a user",
+        "tags": [
+          "Admin – Users"
+        ]
+      }
+    },
+    "/collections": {
+      "get": {
+        "operationId": "CollectionsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCollectionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List active collections",
+        "tags": [
+          "Collections"
+        ]
+      }
+    },
+    "/collections/{id}": {
+      "get": {
+        "operationId": "CollectionsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Collection UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Collection not found"
+          }
+        },
+        "summary": "Get a collection by ID",
+        "tags": [
+          "Collections"
+        ]
+      }
+    },
+    "/admin/collections": {
+      "get": {
+        "operationId": "AdminCollectionsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedAdminCollectionResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List all collections (including inactive)",
+        "tags": [
+          "Admin – Collections"
+        ]
+      },
+      "post": {
+        "operationId": "AdminCollectionsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCollectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCollectionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Create a collection",
+        "tags": [
+          "Admin – Collections"
+        ]
+      }
+    },
+    "/admin/collections/{id}": {
+      "get": {
+        "operationId": "AdminCollectionsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Collection UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCollectionResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Collection not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get a collection by ID",
+        "tags": [
+          "Admin – Collections"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminCollectionsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Collection UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCollectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCollectionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Collection not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a collection",
+        "tags": [
+          "Admin – Collections"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminCollectionsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Collection UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Collection deleted"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Collection not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Delete a collection",
+        "tags": [
+          "Admin – Collections"
+        ]
+      }
+    },
+    "/categories": {
+      "get": {
+        "operationId": "CategoriesController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCategoryResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List all categories with their subcategories",
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
+    "/categories/{id}": {
+      "get": {
+        "operationId": "CategoriesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Category UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        },
+        "summary": "Get a category by ID (includes subcategories)",
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
+    "/categories/{id}/subcategories": {
+      "get": {
+        "operationId": "CategoriesController_findSubCategories",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Category UUID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedSubCategoryResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        },
+        "summary": "List subcategories for a category",
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
+    "/admin/categories": {
+      "get": {
+        "operationId": "AdminCategoriesController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCategoryResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List all categories",
+        "tags": [
+          "Admin – Categories"
+        ]
+      },
+      "post": {
+        "operationId": "AdminCategoriesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Create a category",
+        "tags": [
+          "Admin – Categories"
+        ]
+      }
+    },
+    "/admin/categories/{id}": {
+      "patch": {
+        "operationId": "AdminCategoriesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Category UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a category",
+        "tags": [
+          "Admin – Categories"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminCategoriesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Category UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Category deleted"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Delete a category",
+        "tags": [
+          "Admin – Categories"
+        ]
+      }
+    },
+    "/admin/categories/{id}/subcategories": {
+      "post": {
+        "operationId": "AdminCategoriesController_createSubCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Category UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubCategoryResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Add a subcategory to a category",
+        "tags": [
+          "Admin – Categories"
+        ]
+      }
+    },
+    "/admin/categories/{id}/subcategories/{subId}": {
+      "patch": {
+        "operationId": "AdminCategoriesController_updateSubCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Category UUID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subId",
+            "required": true,
+            "in": "path",
+            "description": "Subcategory UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubCategoryResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Category or subcategory not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a subcategory",
+        "tags": [
+          "Admin – Categories"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminCategoriesController_removeSubCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Category UUID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subId",
+            "required": true,
+            "in": "path",
+            "description": "Subcategory UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Subcategory deleted"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Category or subcategory not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Delete a subcategory",
+        "tags": [
+          "Admin – Categories"
+        ]
+      }
+    },
+    "/products": {
+      "get": {
+        "description": "Browse the public product catalogue with optional filters for collection, category, price range, and sort order.",
+        "operationId": "ProductsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "collectionSlug",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "summer-2025",
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "categorySlug",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "clothing",
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "subCategorySlug",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "t-shirts",
+              "type": "string"
+            }
+          },
+          {
+            "name": "subCategoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "blue widget",
+              "type": "string"
+            }
+          },
+          {
+            "name": "minPrice",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "example": 200,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "basePrice",
+                "name"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedProductResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List published products",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/products/{name}": {
+      "get": {
+        "description": "Fetch a single published product by its URL slug, including all variants, photos, and category info.",
+        "operationId": "ProductsController_findOne",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "description": "Product URL slug (e.g. oversized_hoodie)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        },
+        "summary": "Get a product by slug",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/admin/products": {
+      "get": {
+        "operationId": "AdminProductsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "collectionSlug",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "summer-2025",
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "categorySlug",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "clothing",
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "subCategorySlug",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "t-shirts",
+              "type": "string"
+            }
+          },
+          {
+            "name": "subCategoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "blue widget",
+              "type": "string"
+            }
+          },
+          {
+            "name": "minPrice",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "example": 200,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "basePrice",
+                "name"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "isPublished",
+            "required": false,
+            "in": "query",
+            "description": "Filter by published state",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "includeDeleted",
+            "required": false,
+            "in": "query",
+            "description": "Include soft-deleted products",
+            "schema": {
+              "example": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedAdminProductResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List all products (with admin-only filters)",
+        "tags": [
+          "Admin – Products"
+        ]
+      },
+      "post": {
+        "operationId": "AdminProductsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminProductResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Create a new product",
+        "tags": [
+          "Admin – Products"
+        ]
+      }
+    },
+    "/admin/products/{id}": {
+      "get": {
+        "operationId": "AdminProductsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Product UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminProductResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get a product by ID (admin view with all fields)",
+        "tags": [
+          "Admin – Products"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminProductsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Product UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminProductResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a product",
+        "tags": [
+          "Admin – Products"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminProductsController_softDelete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Product UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Product deleted"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Soft-delete a product",
+        "tags": [
+          "Admin – Products"
+        ]
+      }
+    },
+    "/admin/products/{id}/variants": {
+      "post": {
+        "operationId": "AdminProductsController_createVariant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Product UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVariantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductVariantResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Add a variant to a product",
+        "tags": [
+          "Admin – Products"
+        ]
+      }
+    },
+    "/admin/products/{id}/variants/{variantId}": {
+      "patch": {
+        "operationId": "AdminProductsController_updateVariant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Product UUID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVariantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductVariantResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Product or variant not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a product variant",
+        "tags": [
+          "Admin – Products"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminProductsController_deleteVariant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Product UUID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Variant deleted"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Product or variant not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Delete a product variant",
+        "tags": [
+          "Admin – Products"
+        ]
+      }
+    },
+    "/admin/products/{id}/variants/{variantId}/default": {
+      "post": {
+        "operationId": "AdminProductsController_setDefaultVariant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Product UUID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant UUID to set as default",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminProductResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Product or variant not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Set the default variant for a product",
+        "tags": [
+          "Admin – Products"
+        ]
+      }
+    },
+    "/admin/products/{id}/photos": {
+      "post": {
+        "operationId": "AdminProductsController_addPhoto",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Product UUID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "altText",
+            "required": false,
+            "in": "query",
+            "description": "Alt text for the image",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Image file (JPEG, PNG, WebP)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductPhotoResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Upload a photo for a product",
+        "tags": [
+          "Admin – Products"
+        ]
+      }
+    },
+    "/admin/products/{id}/photos/{photoId}": {
+      "delete": {
+        "operationId": "AdminProductsController_deletePhoto",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Product UUID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "photoId",
+            "required": true,
+            "in": "path",
+            "description": "Photo UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Photo deleted"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Photo not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Delete a product photo",
+        "tags": [
+          "Admin – Products"
+        ]
+      }
+    },
+    "/admin/products/{productId}/reviews": {
+      "get": {
+        "operationId": "AdminProductsController_findReviews",
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "description": "Product UUID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ReviewStatus"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "great quality",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedAdminReviewResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List all reviews for a product (admin view, all statuses)",
+        "tags": [
+          "Admin – Products"
+        ]
+      }
+    },
+    "/products/{productId}/reviews": {
+      "get": {
+        "operationId": "ReviewsController_findByProduct",
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "description": "Product UUID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedReviewResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        },
+        "summary": "List approved reviews for a product",
+        "tags": [
+          "Reviews"
+        ]
+      },
+      "post": {
+        "operationId": "ReviewsController_create",
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "description": "Product UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        },
+        "summary": "Submit a review for a product",
+        "tags": [
+          "Reviews"
+        ]
+      }
+    },
+    "/reviews/{id}": {
+      "delete": {
+        "operationId": "ReviewsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Review UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Review deleted"
+          },
+          "401": {
+            "description": "Missing or invalid token"
+          },
+          "403": {
+            "description": "Not the review owner"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Delete your own review",
+        "tags": [
+          "Reviews"
+        ]
+      }
+    },
+    "/admin/reviews": {
+      "get": {
+        "operationId": "AdminReviewsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "productId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ReviewStatus"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "great quality",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedAdminReviewResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List all reviews with filters (all statuses)",
+        "tags": [
+          "Admin – Reviews"
+        ]
+      }
+    },
+    "/admin/reviews/{id}/status": {
+      "patch": {
+        "operationId": "AdminReviewsController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Review UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReviewStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminReviewResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Approve or reject a review",
+        "tags": [
+          "Admin – Reviews"
+        ]
+      }
+    },
+    "/admin/reviews/{id}": {
+      "delete": {
+        "operationId": "AdminReviewsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Review UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Review deleted"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Hard-delete a review",
+        "tags": [
+          "Admin – Reviews"
+        ]
+      }
+    },
+    "/shipping-methods": {
+      "get": {
+        "operationId": "ShippingController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedShippingMethodResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List active shipping methods",
+        "tags": [
+          "Shipping Methods"
+        ]
+      }
+    },
+    "/admin/shipping-methods": {
+      "get": {
+        "operationId": "AdminShippingController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedShippingMethodResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List all shipping methods (including inactive)",
+        "tags": [
+          "Admin – Shipping"
+        ]
+      },
+      "post": {
+        "operationId": "AdminShippingController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShippingMethodDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingMethodResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Create a shipping method",
+        "tags": [
+          "Admin – Shipping"
+        ]
+      }
+    },
+    "/admin/shipping-methods/{id}": {
+      "patch": {
+        "operationId": "AdminShippingController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Shipping method UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShippingMethodDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingMethodResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Shipping method not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a shipping method",
+        "tags": [
+          "Admin – Shipping"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminShippingController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Shipping method UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Shipping method deleted"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Shipping method not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Delete a shipping method",
+        "tags": [
+          "Admin – Shipping"
+        ]
+      }
+    },
+    "/addresses": {
+      "get": {
+        "operationId": "AddressesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SavedAddressResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List saved addresses for the authenticated user",
+        "tags": [
+          "Addresses"
+        ]
+      },
+      "post": {
+        "operationId": "AddressesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSavedAddressDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedAddressResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Save a new address",
+        "tags": [
+          "Addresses"
+        ]
+      }
+    },
+    "/addresses/{id}": {
+      "patch": {
+        "operationId": "AddressesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Address UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSavedAddressDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedAddressResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "404": {
+            "description": "Address not found or not owned by current user"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a saved address",
+        "tags": [
+          "Addresses"
+        ]
+      },
+      "delete": {
+        "operationId": "AddressesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Address UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Address deleted"
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "404": {
+            "description": "Address not found or not owned by current user"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Delete a saved address",
+        "tags": [
+          "Addresses"
+        ]
+      }
+    },
+    "/orders": {
+      "post": {
+        "description": "Works for both guest and authenticated users. Provide guestEmail for guest checkout.",
+        "operationId": "OrdersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Place a new order",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{orderNumber}": {
+      "get": {
+        "operationId": "OrdersController_findByOrderNumber",
+        "parameters": [
+          {
+            "name": "orderNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "ORD-20240101-0001",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        },
+        "summary": "Look up an order by order number",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/admin/orders": {
+      "get": {
+        "operationId": "AdminOrdersController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedAdminOrderResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List all orders with filters",
+        "tags": [
+          "Admin – Orders"
+        ]
+      }
+    },
+    "/admin/orders/{id}": {
+      "get": {
+        "operationId": "AdminOrdersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminOrderResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get an order by ID (admin view)",
+        "tags": [
+          "Admin – Orders"
+        ]
+      }
+    },
+    "/admin/orders/{id}/status": {
+      "patch": {
+        "operationId": "AdminOrdersController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminOrderResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update payment or fulfillment status of an order",
+        "tags": [
+          "Admin – Orders"
+        ]
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "MeController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get the authenticated user profile",
+        "tags": [
+          "Me"
+        ]
+      }
+    },
+    "/me/orders": {
+      "get": {
+        "operationId": "MeController_getOrders",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedOrderResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List the authenticated user's orders",
+        "tags": [
+          "Me"
+        ]
+      }
+    },
+    "/me/addresses": {
+      "get": {
+        "operationId": "MeController_getAddresses",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SavedAddressResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List the authenticated user's saved addresses",
+        "tags": [
+          "Me"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "O2Shop API",
+    "description": "REST API for the O2Shop e-commerce platform. Public endpoints need no authentication. Customer endpoints require a JWT bearer token (from POST /auth/login). Admin endpoints additionally require the `admin` role.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Registration, login, Google OAuth"
+    },
+    {
+      "name": "Products",
+      "description": "Public product catalogue"
+    },
+    {
+      "name": "Collections",
+      "description": "Product collections"
+    },
+    {
+      "name": "Categories",
+      "description": "Product categories and subcategories"
+    },
+    {
+      "name": "Reviews",
+      "description": "Product reviews — public read, auth write"
+    },
+    {
+      "name": "Orders",
+      "description": "Order placement and status lookup"
+    },
+    {
+      "name": "Shipping Methods",
+      "description": "Available shipping options"
+    },
+    {
+      "name": "Me",
+      "description": "Authenticated user profile, orders, and addresses"
+    },
+    {
+      "name": "Addresses",
+      "description": "Saved shipping/billing addresses"
+    },
+    {
+      "name": "Admin – Products",
+      "description": "Admin: full product CRUD"
+    },
+    {
+      "name": "Admin – Orders",
+      "description": "Admin: order management"
+    },
+    {
+      "name": "Admin – Reviews",
+      "description": "Admin: review moderation"
+    },
+    {
+      "name": "Admin – Collections",
+      "description": "Admin: collection management"
+    },
+    {
+      "name": "Admin – Categories",
+      "description": "Admin: category and subcategory management"
+    },
+    {
+      "name": "Admin – Shipping",
+      "description": "Admin: shipping method management"
+    },
+    {
+      "name": "Admin – Users",
+      "description": "Admin: user management"
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:3001",
+      "description": "Local development"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "access_token": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "Paste the access_token value from POST /auth/login."
+      }
+    },
+    "schemas": {
+      "CreateLocalUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "example": "strongP@ss1",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "Role": {
+        "type": "string",
+        "enum": [
+          "regular",
+          "admin"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://example.com/avatar.jpg"
+          },
+          "googleLinked": {
+            "type": "boolean",
+            "example": false
+          },
+          "role": {
+            "example": "regular",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "googleLinked",
+          "role",
+          "isActive",
+          "createdAt"
+        ]
+      },
+      "ErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 400
+          },
+          "message": {
+            "example": [
+              "email must be an email"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "error": {
+            "type": "string",
+            "example": "Bad Request"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ]
+      },
+      "AdminUserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://example.com/avatar.jpg"
+          },
+          "googleLinked": {
+            "type": "boolean",
+            "example": false
+          },
+          "role": {
+            "example": "regular",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "tokenVersion": {
+            "type": "number",
+            "example": 1
+          },
+          "deletedAt": {
+            "type": "object",
+            "nullable": true,
+            "example": null
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2024-06-01T00:00:00.000Z"
+          },
+          "version": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "googleLinked",
+          "role",
+          "isActive",
+          "createdAt",
+          "tokenVersion",
+          "updatedAt",
+          "version"
+        ]
+      },
+      "PaginatedAdminUserResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminUserResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      },
+      "UpdateAdminUserDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "example": "regular",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "resetTokenVersion": {
+            "type": "boolean",
+            "description": "Set to true to invalidate all existing tokens for this user",
+            "example": false
+          }
+        }
+      },
+      "CollectionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string",
+            "example": "summer-2025"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Summer 2025"
+          },
+          "description": {
+            "type": "string",
+            "example": "Our summer collection"
+          },
+          "bannerImageUrl": {
+            "type": "string",
+            "example": "/uploads/summer-banner.jpg"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "displayName",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedCollectionResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      },
+      "AdminCollectionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string",
+            "example": "summer-2025"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Summer 2025"
+          },
+          "description": {
+            "type": "string",
+            "example": "Our summer collection"
+          },
+          "bannerImageUrl": {
+            "type": "string",
+            "example": "/uploads/summer-banner.jpg"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "displayName",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedAdminCollectionResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminCollectionResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      },
+      "CreateCollectionDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "summer-2025",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Summer 2025"
+          },
+          "description": {
+            "type": "string",
+            "example": "Our summer collection featuring..."
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          }
+        },
+        "required": [
+          "slug",
+          "displayName"
+        ]
+      },
+      "UpdateCollectionDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "summer-2025",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Summer 2025"
+          },
+          "description": {
+            "type": "string",
+            "example": "Our summer collection featuring..."
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          }
+        }
+      },
+      "SubCategoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string",
+            "example": "t-shirts"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "T-Shirts"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "displayName",
+          "categoryId"
+        ]
+      },
+      "CategoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string",
+            "example": "clothing"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Clothing"
+          },
+          "subCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubCategoryResponseDto"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "displayName",
+          "subCategories",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedCategoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      },
+      "PaginatedSubCategoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubCategoryResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "clothing",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Clothing"
+          }
+        },
+        "required": [
+          "slug",
+          "displayName"
+        ]
+      },
+      "CreateSubCategoryDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "t-shirts",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "T-Shirts"
+          }
+        },
+        "required": [
+          "slug",
+          "displayName"
+        ]
+      },
+      "ProductPhotoResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "example": "/uploads/photo.jpg"
+          },
+          "altText": {
+            "type": "string",
+            "example": "Front view of product"
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "sortOrder"
+        ]
+      },
+      "ProductVariantResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "colorName": {
+            "type": "string",
+            "example": "Navy Blue"
+          },
+          "colorValue": {
+            "type": "string",
+            "example": "#001f5b"
+          },
+          "size": {
+            "type": "string",
+            "example": "M"
+          },
+          "sku": {
+            "type": "string",
+            "example": "BLU-M-001"
+          },
+          "stock": {
+            "type": "number",
+            "example": 50
+          },
+          "priceOverride": {
+            "type": "number",
+            "example": 34.99
+          },
+          "mainPhotoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mainPhoto": {
+            "$ref": "#/components/schemas/ProductPhotoResponseDto"
+          }
+        },
+        "required": [
+          "id",
+          "productId",
+          "colorName",
+          "colorValue",
+          "size",
+          "sku",
+          "stock"
+        ]
+      },
+      "CollectionSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string",
+            "example": "summer-2025"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Summer 2025"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "displayName"
+        ]
+      },
+      "CategorySummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string",
+            "example": "clothing"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Clothing"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "displayName"
+        ]
+      },
+      "SubCategorySummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string",
+            "example": "t-shirts"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "T-Shirts"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "displayName"
+        ]
+      },
+      "ProductResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "blue_widget"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Blue Widget"
+          },
+          "basePrice": {
+            "type": "number",
+            "example": 29.99
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "description": {
+            "type": "object",
+            "required": [
+              "blocks"
+            ],
+            "properties": {
+              "blocks": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "content"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "text"
+                          ]
+                        },
+                        "content": {
+                          "type": "string",
+                          "example": "This is a paragraph."
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "items"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "points"
+                          ]
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": [
+                            "Feature one",
+                            "Feature two"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "rating": {
+            "type": "object",
+            "nullable": true,
+            "example": 4.5
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductPhotoResponseDto"
+            }
+          },
+          "defaultVariant": {
+            "$ref": "#/components/schemas/ProductVariantResponseDto"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductVariantResponseDto"
+            }
+          },
+          "collection": {
+            "$ref": "#/components/schemas/CollectionSummaryDto"
+          },
+          "category": {
+            "$ref": "#/components/schemas/CategorySummaryDto"
+          },
+          "subCategory": {
+            "$ref": "#/components/schemas/SubCategorySummaryDto"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "displayName",
+          "basePrice",
+          "currency",
+          "photos",
+          "variants",
+          "category",
+          "subCategory"
+        ]
+      },
+      "PaginatedProductResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      },
+      "AdminProductResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "blue_widget"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Blue Widget"
+          },
+          "basePrice": {
+            "type": "number",
+            "example": 29.99
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "description": {
+            "type": "object",
+            "required": [
+              "blocks"
+            ],
+            "properties": {
+              "blocks": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "content"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "text"
+                          ]
+                        },
+                        "content": {
+                          "type": "string",
+                          "example": "This is a paragraph."
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "items"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "points"
+                          ]
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": [
+                            "Feature one",
+                            "Feature two"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "rating": {
+            "type": "object",
+            "nullable": true,
+            "example": 4.5
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductPhotoResponseDto"
+            }
+          },
+          "defaultVariant": {
+            "$ref": "#/components/schemas/ProductVariantResponseDto"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductVariantResponseDto"
+            }
+          },
+          "collection": {
+            "$ref": "#/components/schemas/CollectionSummaryDto"
+          },
+          "category": {
+            "$ref": "#/components/schemas/CategorySummaryDto"
+          },
+          "subCategory": {
+            "$ref": "#/components/schemas/SubCategorySummaryDto"
+          },
+          "isPublished": {
+            "type": "boolean",
+            "example": true
+          },
+          "deletedAt": {
+            "type": "object",
+            "nullable": true,
+            "example": null
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "displayName",
+          "basePrice",
+          "currency",
+          "photos",
+          "variants",
+          "category",
+          "subCategory",
+          "isPublished",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedAdminProductResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      },
+      "CreateProductDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "blue_widget",
+            "pattern": "^[a-z0-9_]+$",
+            "description": "Unique URL-safe identifier (lowercase, underscores)"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Blue Widget"
+          },
+          "collectionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the collection to assign"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subCategoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "basePrice": {
+            "type": "number",
+            "minimum": 0,
+            "example": 29.99
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "example": "USD"
+          },
+          "description": {
+            "type": "object",
+            "required": [
+              "blocks"
+            ],
+            "properties": {
+              "blocks": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "content"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "text"
+                          ]
+                        },
+                        "content": {
+                          "type": "string",
+                          "example": "This is a paragraph."
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "items"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "points"
+                          ]
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": [
+                            "Feature one",
+                            "Feature two"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "isPublished": {
+            "type": "boolean",
+            "default": false,
+            "example": false
+          }
+        },
+        "required": [
+          "name",
+          "displayName",
+          "categoryId",
+          "subCategoryId",
+          "basePrice",
+          "currency"
+        ]
+      },
+      "UpdateProductDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "blue_widget",
+            "pattern": "^[a-z0-9_]+$",
+            "description": "Unique URL-safe identifier (lowercase, underscores)"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Blue Widget"
+          },
+          "collectionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the collection to assign"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subCategoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "basePrice": {
+            "type": "number",
+            "minimum": 0,
+            "example": 29.99
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "example": "USD"
+          },
+          "description": {
+            "type": "object",
+            "properties": {
+              "blocks": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "content"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "text"
+                          ]
+                        },
+                        "content": {
+                          "type": "string",
+                          "example": "This is a paragraph."
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "items"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "points"
+                          ]
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": [
+                            "Feature one",
+                            "Feature two"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "isPublished": {
+            "type": "boolean",
+            "default": false,
+            "example": false
+          }
+        }
+      },
+      "CreateVariantDto": {
+        "type": "object",
+        "properties": {
+          "colorName": {
+            "type": "string",
+            "example": "Navy Blue"
+          },
+          "colorValue": {
+            "type": "string",
+            "example": "#001f5b",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "size": {
+            "type": "string",
+            "example": "M"
+          },
+          "sku": {
+            "type": "string",
+            "example": "BLU-M-001"
+          },
+          "stock": {
+            "type": "number",
+            "minimum": 0,
+            "example": 50
+          },
+          "priceOverride": {
+            "type": "number",
+            "minimum": 0,
+            "example": 34.99
+          },
+          "mainPhotoId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "colorName",
+          "colorValue",
+          "size"
+        ]
+      },
+      "UpdateVariantDto": {
+        "type": "object",
+        "properties": {
+          "colorName": {
+            "type": "string",
+            "example": "Navy Blue"
+          },
+          "colorValue": {
+            "type": "string",
+            "example": "#001f5b",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "size": {
+            "type": "string",
+            "example": "M"
+          },
+          "sku": {
+            "type": "string",
+            "example": "BLU-M-001"
+          },
+          "stock": {
+            "type": "number",
+            "minimum": 0,
+            "example": 50
+          },
+          "priceOverride": {
+            "type": "number",
+            "minimum": 0,
+            "example": 34.99
+          },
+          "mainPhotoId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "ReviewStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "approved",
+          "rejected"
+        ]
+      },
+      "AdminReviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Jane D."
+          },
+          "rating": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "example": 8
+          },
+          "content": {
+            "type": "string",
+            "example": "Great quality, fast shipping!"
+          },
+          "photoUrls": {
+            "example": [
+              "https://example.com/photo.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ReviewStatus"
+              }
+            ]
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "productId",
+          "displayName",
+          "rating",
+          "content",
+          "createdAt",
+          "email",
+          "status",
+          "updatedAt"
+        ]
+      },
+      "PaginatedAdminReviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminReviewResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      },
+      "ReviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Jane D."
+          },
+          "rating": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "example": 8
+          },
+          "content": {
+            "type": "string",
+            "example": "Great quality, fast shipping!"
+          },
+          "photoUrls": {
+            "example": [
+              "https://example.com/photo.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "productId",
+          "displayName",
+          "rating",
+          "content",
+          "createdAt"
+        ]
+      },
+      "PaginatedReviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      },
+      "CreateReviewDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Jane D."
+          },
+          "rating": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "example": 8
+          },
+          "content": {
+            "type": "string",
+            "example": "Great quality, fast shipping!"
+          },
+          "photoUrls": {
+            "example": [
+              "https://example.com/photo.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "email",
+          "displayName",
+          "rating",
+          "content"
+        ]
+      },
+      "UpdateReviewStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "example": "approved",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ReviewStatus"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ShippingMethodResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Standard Shipping"
+          },
+          "price": {
+            "type": "number",
+            "example": 5.99
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "estimatedDays": {
+            "type": "number",
+            "example": 5
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price",
+          "currency",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedShippingMethodResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShippingMethodResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      },
+      "CreateShippingMethodDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Standard Shipping"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "example": 5.99
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "example": "USD"
+          },
+          "estimatedDays": {
+            "type": "number",
+            "minimum": 1,
+            "example": 5,
+            "description": "Estimated delivery days"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "price",
+          "currency"
+        ]
+      },
+      "AddressResponseDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "Jane"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "company": {
+            "type": "string",
+            "example": "Acme Corp"
+          },
+          "address1": {
+            "type": "string",
+            "example": "123 Main St"
+          },
+          "address2": {
+            "type": "string",
+            "example": "Apt 4B"
+          },
+          "city": {
+            "type": "string",
+            "example": "New York"
+          },
+          "country": {
+            "type": "string",
+            "example": "US"
+          },
+          "province": {
+            "type": "string",
+            "example": "NY"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "10001"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+1 555 000 0000"
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "address1",
+          "city",
+          "country",
+          "province",
+          "postalCode",
+          "phone"
+        ]
+      },
+      "SavedAddressResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Home"
+          },
+          "shippingAddress": {
+            "$ref": "#/components/schemas/AddressResponseDto"
+          },
+          "billingAddress": {
+            "$ref": "#/components/schemas/AddressResponseDto"
+          },
+          "billingIsSameAsShipping": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "shippingAddress",
+          "billingAddress",
+          "billingIsSameAsShipping",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "AddressDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "Jane"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "company": {
+            "type": "string",
+            "example": "Acme Corp"
+          },
+          "address1": {
+            "type": "string",
+            "example": "123 Main St"
+          },
+          "address2": {
+            "type": "string",
+            "example": "Apt 4B"
+          },
+          "city": {
+            "type": "string",
+            "example": "New York"
+          },
+          "country": {
+            "type": "string",
+            "example": "US",
+            "description": "ISO 3166-1 alpha-2 country code"
+          },
+          "province": {
+            "type": "string",
+            "example": "NY"
+          },
+          "postalCode": {
+            "type": "string",
+            "example": "10001"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+1 555 000 0000"
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "address1",
+          "city",
+          "country",
+          "province",
+          "postalCode",
+          "phone"
+        ]
+      },
+      "CreateSavedAddressDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Home"
+          },
+          "shippingAddress": {
+            "$ref": "#/components/schemas/AddressDto"
+          },
+          "billingAddress": {
+            "$ref": "#/components/schemas/AddressDto"
+          },
+          "billingIsSameAsShipping": {
+            "type": "boolean",
+            "default": false,
+            "example": false
+          }
+        },
+        "required": [
+          "name",
+          "shippingAddress",
+          "billingAddress"
+        ]
+      },
+      "CreateOrderItemDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "variantSku": {
+            "type": "string",
+            "example": "BLU-M-001"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 1,
+            "example": 2
+          }
+        },
+        "required": [
+          "productId",
+          "variantSku",
+          "quantity"
+        ]
+      },
+      "CreateOrderDto": {
+        "type": "object",
+        "properties": {
+          "guestEmail": {
+            "type": "string",
+            "format": "email",
+            "example": "guest@example.com",
+            "description": "Required for guest checkout (no logged-in account)"
+          },
+          "guestFirstName": {
+            "type": "string",
+            "example": "Jane"
+          },
+          "guestLastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "shippingMethodId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID from GET /shipping-methods"
+          },
+          "shippingAddress": {
+            "$ref": "#/components/schemas/AddressDto"
+          },
+          "billingIsSameAsShipping": {
+            "type": "boolean",
+            "default": false,
+            "example": false
+          },
+          "billingAddress": {
+            "$ref": "#/components/schemas/AddressDto"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateOrderItemDto"
+            }
+          }
+        },
+        "required": [
+          "shippingMethodId",
+          "shippingAddress",
+          "billingAddress",
+          "items"
+        ]
+      },
+      "PaymentStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "paid",
+          "failed",
+          "refunded"
+        ]
+      },
+      "FulfillmentStatus": {
+        "type": "string",
+        "enum": [
+          "unfulfilled",
+          "fulfilled",
+          "partially_fulfilled",
+          "cancelled"
+        ]
+      },
+      "OrderItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productName": {
+            "type": "string",
+            "example": "Blue Widget"
+          },
+          "productSku": {
+            "type": "string",
+            "example": "BLU-M-001"
+          },
+          "productPrice": {
+            "type": "number",
+            "example": 29.99
+          },
+          "productCurrency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "quantity": {
+            "type": "number",
+            "example": 2
+          },
+          "total": {
+            "type": "number",
+            "example": 59.98
+          }
+        },
+        "required": [
+          "id",
+          "productName",
+          "productSku",
+          "productPrice",
+          "productCurrency",
+          "quantity",
+          "total"
+        ]
+      },
+      "OrderResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string",
+            "example": "ORD-20240101-0001"
+          },
+          "paymentStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaymentStatus"
+              }
+            ]
+          },
+          "fulfillmentStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FulfillmentStatus"
+              }
+            ]
+          },
+          "totalAmount": {
+            "type": "number",
+            "example": 65.97
+          },
+          "totalCurrency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "shippingMethodName": {
+            "type": "string",
+            "example": "Standard Shipping"
+          },
+          "shippingPrice": {
+            "type": "number",
+            "example": 5.99
+          },
+          "shippingCurrency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "shippingAddress": {
+            "$ref": "#/components/schemas/AddressResponseDto"
+          },
+          "billingAddress": {
+            "$ref": "#/components/schemas/AddressResponseDto"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemResponseDto"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "orderNumber",
+          "paymentStatus",
+          "fulfillmentStatus",
+          "totalAmount",
+          "totalCurrency",
+          "shippingMethodName",
+          "shippingPrice",
+          "shippingCurrency",
+          "shippingAddress",
+          "billingAddress",
+          "items",
+          "createdAt"
+        ]
+      },
+      "AdminOrderResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string",
+            "example": "ORD-20240101-0001"
+          },
+          "paymentStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaymentStatus"
+              }
+            ]
+          },
+          "fulfillmentStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FulfillmentStatus"
+              }
+            ]
+          },
+          "totalAmount": {
+            "type": "number",
+            "example": 65.97
+          },
+          "totalCurrency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "shippingMethodName": {
+            "type": "string",
+            "example": "Standard Shipping"
+          },
+          "shippingPrice": {
+            "type": "number",
+            "example": 5.99
+          },
+          "shippingCurrency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "shippingAddress": {
+            "$ref": "#/components/schemas/AddressResponseDto"
+          },
+          "billingAddress": {
+            "$ref": "#/components/schemas/AddressResponseDto"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemResponseDto"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "guestEmail": {
+            "type": "string",
+            "example": "guest@example.com"
+          },
+          "guestFirstName": {
+            "type": "string",
+            "example": "Jane"
+          },
+          "guestLastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "paymentProviderId": {
+            "type": "string"
+          },
+          "paymentProviderRef": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "orderNumber",
+          "paymentStatus",
+          "fulfillmentStatus",
+          "totalAmount",
+          "totalCurrency",
+          "shippingMethodName",
+          "shippingPrice",
+          "shippingCurrency",
+          "shippingAddress",
+          "billingAddress",
+          "items",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedAdminOrderResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      },
+      "UpdateOrderStatusDto": {
+        "type": "object",
+        "properties": {
+          "paymentStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaymentStatus"
+              }
+            ]
+          },
+          "fulfillmentStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FulfillmentStatus"
+              }
+            ]
+          }
+        }
+      },
+      "PaginatedOrderResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      }
+    }
+  }
+}

@@ -10,6 +10,20 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiParam,
+  ApiBody,
+} from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -18,19 +32,26 @@ import {
   CategoryResponseDto,
   SubCategoryResponseDto,
 } from './dto/category-response.dto';
-import { PaginatedResponseDto } from '../common/dto/paginated-response.dto';
+import { PaginatedResponseDto, PaginatedDto } from '../common/dto/paginated-response.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { ErrorResponseDto } from '../common/dto/error-response.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/enums/role.enum';
 
+@ApiTags('Admin – Categories')
+@ApiBearerAuth('access_token')
+@ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
+@ApiForbiddenResponse({ description: 'Admin role required' })
 @Controller('admin/categories')
 @Auth(AuthType.Bearer)
 @Roles(Role.ADMIN)
 export class AdminCategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
+  @ApiOperation({ summary: 'List all categories' })
+  @ApiOkResponse({ type: PaginatedDto(CategoryResponseDto) })
   @Get()
   async findAll(
     @Query() query: PaginationQueryDto,
@@ -44,6 +65,10 @@ export class AdminCategoriesController {
     return { data, total: data.length, page: query.page, limit: query.limit };
   }
 
+  @ApiOperation({ summary: 'Create a category' })
+  @ApiBody({ type: CreateCategoryDto })
+  @ApiCreatedResponse({ type: CategoryResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
   @Post()
   async create(@Body() dto: CreateCategoryDto): Promise<CategoryResponseDto> {
     const category = await this.categoriesService.create(dto);
@@ -52,6 +77,12 @@ export class AdminCategoriesController {
     });
   }
 
+  @ApiOperation({ summary: 'Update a category' })
+  @ApiParam({ name: 'id', description: 'Category UUID' })
+  @ApiBody({ type: CreateCategoryDto })
+  @ApiOkResponse({ type: CategoryResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiNotFoundResponse({ description: 'Category not found' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -63,12 +94,22 @@ export class AdminCategoriesController {
     });
   }
 
+  @ApiOperation({ summary: 'Delete a category' })
+  @ApiParam({ name: 'id', description: 'Category UUID' })
+  @ApiNoContentResponse({ description: 'Category deleted' })
+  @ApiNotFoundResponse({ description: 'Category not found' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string): Promise<void> {
     await this.categoriesService.remove(id);
   }
 
+  @ApiOperation({ summary: 'Add a subcategory to a category' })
+  @ApiParam({ name: 'id', description: 'Category UUID' })
+  @ApiBody({ type: CreateSubCategoryDto })
+  @ApiCreatedResponse({ type: SubCategoryResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiNotFoundResponse({ description: 'Category not found' })
   @Post(':id/subcategories')
   async createSubCategory(
     @Param('id') id: string,
@@ -80,6 +121,13 @@ export class AdminCategoriesController {
     });
   }
 
+  @ApiOperation({ summary: 'Update a subcategory' })
+  @ApiParam({ name: 'id', description: 'Category UUID' })
+  @ApiParam({ name: 'subId', description: 'Subcategory UUID' })
+  @ApiBody({ type: CreateSubCategoryDto })
+  @ApiOkResponse({ type: SubCategoryResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiNotFoundResponse({ description: 'Category or subcategory not found' })
   @Patch(':id/subcategories/:subId')
   async updateSubCategory(
     @Param('id') id: string,
@@ -92,6 +140,11 @@ export class AdminCategoriesController {
     });
   }
 
+  @ApiOperation({ summary: 'Delete a subcategory' })
+  @ApiParam({ name: 'id', description: 'Category UUID' })
+  @ApiParam({ name: 'subId', description: 'Subcategory UUID' })
+  @ApiNoContentResponse({ description: 'Subcategory deleted' })
+  @ApiNotFoundResponse({ description: 'Category or subcategory not found' })
   @Delete(':id/subcategories/:subId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeSubCategory(

@@ -54,7 +54,12 @@ export class Order {
   })
   fulfillmentStatus: FulfillmentStatus;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: { to: (v) => v, from: (v) => parseFloat(v) },
+  })
   totalAmount: number;
 
   @Column({ length: 3 })
@@ -69,7 +74,12 @@ export class Order {
   @Column()
   shippingMethodName: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: { to: (v) => v, from: (v) => parseFloat(v) },
+  })
   shippingPrice: number;
 
   @Column({ length: 3 })

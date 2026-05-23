@@ -1,0 +1,32 @@
+GET {{baseUrl}}/admin/collections
+- In swagger schema says "data" will return "OrderResponseDto", but it's not.
+- Real response data for {{baseUrl}}/admin/collections:
+```
+{
+  "data": [
+    {
+      "id": "556db834-3381-415f-b5b4-decd846a435b",
+      "slug": "summer-2025",
+      "displayName": "Summer Essentials 2025",
+      "description": "Light and breathable styles for the warmer months.",
+      "bannerImageUrl": null,
+      "isActive": true,
+      "createdAt": "2026-05-22T15:06:18.666Z",
+      "updatedAt": "2026-05-22T15:06:18.666Z"
+    },
+    {
+      "id": "8c96ffe6-ed11-45bc-94e3-fcf87f4ad9ca",
+      "slug": "winter-2025",
+      "displayName": "Winter Collection 2025",
+      "description": "Warm essentials for the colder months.",
+      "bannerImageUrl": null,
+      "isActive": true,
+      "createdAt": "2026-05-22T15:06:18.662Z",
+      "updatedAt": "2026-05-22T15:06:18.662Z"
+    }
+  ],
+  "total": 2,
+  "page": 1,
+  "limit": 20
+}
+```

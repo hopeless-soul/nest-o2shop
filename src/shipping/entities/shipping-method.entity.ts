@@ -14,7 +14,12 @@ export class ShippingMethod {
   @Column()
   name: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: { to: (v) => v, from: (v) => parseFloat(v) },
+  })
   price: number;
 
   @Column({ length: 3 })

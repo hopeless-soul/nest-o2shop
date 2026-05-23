@@ -1,19 +1,21 @@
 import { Expose, Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class SubCategoryResponseDto {
-  @Expose() id: string;
-  @Expose() slug: string;
-  @Expose() displayName: string;
-  @Expose() categoryId: string;
+  @ApiProperty({ format: 'uuid' }) @Expose() id: string;
+  @ApiProperty({ example: 't-shirts' }) @Expose() slug: string;
+  @ApiProperty({ example: 'T-Shirts' }) @Expose() displayName: string;
+  @ApiProperty({ format: 'uuid' }) @Expose() categoryId: string;
 }
 
 export class CategoryResponseDto {
-  @Expose() id: string;
-  @Expose() slug: string;
-  @Expose() displayName: string;
+  @ApiProperty({ format: 'uuid' }) @Expose() id: string;
+  @ApiProperty({ example: 'clothing' }) @Expose() slug: string;
+  @ApiProperty({ example: 'Clothing' }) @Expose() displayName: string;
+  @ApiProperty({ type: () => SubCategoryResponseDto, isArray: true })
   @Expose()
   @Type(() => SubCategoryResponseDto)
   subCategories: SubCategoryResponseDto[];
-  @Expose() createdAt: Date;
-  @Expose() updatedAt: Date;
+  @ApiProperty() @Expose() createdAt: Date;
+  @ApiProperty() @Expose() updatedAt: Date;
 }

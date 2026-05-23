@@ -28,7 +28,12 @@ export class OrderItem {
   @Column()
   productSku: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: { to: (v) => v, from: (v) => parseFloat(v) },
+  })
   productPrice: number;
 
   @Column({ length: 3 })
@@ -37,7 +42,12 @@ export class OrderItem {
   @Column({ type: 'int' })
   quantity: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: { to: (v) => v, from: (v) => parseFloat(v) },
+  })
   total: number;
 
   @CreateDateColumn()

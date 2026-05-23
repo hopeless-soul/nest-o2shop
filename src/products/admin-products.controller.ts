@@ -13,6 +13,22 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBody,
+  ApiConsumes,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
 import { ProductsService } from './products.service';
@@ -26,18 +42,25 @@ import { AdminProductResponseDto } from './dto/product-response.dto';
 import { ProductVariantResponseDto } from './dto/product-variant-response.dto';
 import { ProductPhotoResponseDto } from './dto/product-photo-response.dto';
 import { AdminReviewResponseDto } from '../reviews/dto/review-response.dto';
-import { PaginatedResponseDto } from '../common/dto/paginated-response.dto';
+import { PaginatedResponseDto, PaginatedDto } from '../common/dto/paginated-response.dto';
+import { ErrorResponseDto } from '../common/dto/error-response.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/enums/role.enum';
 
+@ApiTags('Admin – Products')
+@ApiBearerAuth('access_token')
+@ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
+@ApiForbiddenResponse({ description: 'Admin role required' })
 @Controller('admin/products')
 @Auth(AuthType.Bearer)
 @Roles(Role.ADMIN)
 export class AdminProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @ApiOperation({ summary: 'List all products (with admin-only filters)' })
+  @ApiOkResponse({ type: PaginatedDto(AdminProductResponseDto) })
   @Get()
   async findAll(
     @Query() query: AdminFilterProductsQueryDto,
@@ -55,6 +78,10 @@ export class AdminProductsController {
     };
   }
 
+  @ApiOperation({ summary: 'Get a product by ID (admin view with all fields)' })
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiOkResponse({ type: AdminProductResponseDto })
+  @ApiNotFoundResponse({ description: 'Product not found' })
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<AdminProductResponseDto> {
     const product = await this.productsService.findByIdAdmin(id);
@@ -63,6 +90,10 @@ export class AdminProductsController {
     });
   }
 
+  @ApiOperation({ summary: 'Create a new product' })
+  @ApiBody({ type: CreateProductDto })
+  @ApiCreatedResponse({ type: AdminProductResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
   @Post()
   async create(
     @Body() dto: CreateProductDto,
@@ -73,6 +104,12 @@ export class AdminProductsController {
     });
   }
 
+  @ApiOperation({ summary: 'Update a product' })
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiBody({ type: UpdateProductDto })
+  @ApiOkResponse({ type: AdminProductResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiNotFoundResponse({ description: 'Product not found' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -84,12 +121,22 @@ export class AdminProductsController {
     });
   }
 
+  @ApiOperation({ summary: 'Soft-delete a product' })
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiNoContentResponse({ description: 'Product deleted' })
+  @ApiNotFoundResponse({ description: 'Product not found' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async softDelete(@Param('id') id: string): Promise<void> {
     await this.productsService.softDelete(id);
   }
 
+  @ApiOperation({ summary: 'Add a variant to a product' })
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiBody({ type: CreateVariantDto })
+  @ApiCreatedResponse({ type: ProductVariantResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiNotFoundResponse({ description: 'Product not found' })
   @Post(':id/variants')
   async createVariant(
     @Param('id') id: string,
@@ -101,6 +148,13 @@ export class AdminProductsController {
     });
   }
 
+  @ApiOperation({ summary: 'Update a product variant' })
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiParam({ name: 'variantId', description: 'Variant UUID' })
+  @ApiBody({ type: UpdateVariantDto })
+  @ApiOkResponse({ type: ProductVariantResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiNotFoundResponse({ description: 'Product or variant not found' })
   @Patch(':id/variants/:variantId')
   async updateVariant(
     @Param('id') id: string,
@@ -117,6 +171,11 @@ export class AdminProductsController {
     });
   }
 
+  @ApiOperation({ summary: 'Delete a product variant' })
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiParam({ name: 'variantId', description: 'Variant UUID' })
+  @ApiNoContentResponse({ description: 'Variant deleted' })
+  @ApiNotFoundResponse({ description: 'Product or variant not found' })
   @Delete(':id/variants/:variantId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteVariant(
@@ -126,6 +185,11 @@ export class AdminProductsController {
     await this.productsService.deleteVariant(id, variantId);
   }
 
+  @ApiOperation({ summary: 'Set the default variant for a product' })
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiParam({ name: 'variantId', description: 'Variant UUID to set as default' })
+  @ApiOkResponse({ type: AdminProductResponseDto })
+  @ApiNotFoundResponse({ description: 'Product or variant not found' })
   @Post(':id/variants/:variantId/default')
   async setDefaultVariant(
     @Param('id') id: string,
@@ -137,6 +201,24 @@ export class AdminProductsController {
     });
   }
 
+  @ApiOperation({ summary: 'Upload a photo for a product' })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiQuery({ name: 'altText', required: false, description: 'Alt text for the image' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Image file (JPEG, PNG, WebP)',
+        },
+      },
+    },
+  })
+  @ApiCreatedResponse({ type: ProductPhotoResponseDto })
   @Post(':id/photos')
   @UseInterceptors(FileInterceptor('file'))
   async addPhoto(
@@ -150,6 +232,11 @@ export class AdminProductsController {
     });
   }
 
+  @ApiOperation({ summary: 'Delete a product photo' })
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiParam({ name: 'photoId', description: 'Photo UUID' })
+  @ApiNoContentResponse({ description: 'Photo deleted' })
+  @ApiNotFoundResponse({ description: 'Photo not found' })
   @Delete(':id/photos/:photoId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deletePhoto(
@@ -159,6 +246,10 @@ export class AdminProductsController {
     await this.productsService.deletePhoto(id, photoId);
   }
 
+  @ApiOperation({ summary: 'List all reviews for a product (admin view, all statuses)' })
+  @ApiParam({ name: 'productId', description: 'Product UUID' })
+  @ApiOkResponse({ type: PaginatedDto(AdminReviewResponseDto) })
+  @ApiNotFoundResponse({ description: 'Product not found' })
   @Get(':productId/reviews')
   async findReviews(
     @Param('productId') productId: string,

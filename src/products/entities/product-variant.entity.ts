@@ -38,7 +38,13 @@ export class ProductVariant {
   @Column({ default: 0 })
   stock: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    transformer: { to: (v) => v, from: (v) => (v == null ? v : parseFloat(v)) },
+  })
   priceOverride?: number;
 
   @Column({ nullable: true })

@@ -46,7 +46,12 @@ export class Product {
   @ManyToOne(() => SubCategory, { onDelete: 'RESTRICT' })
   subCategory: SubCategory;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: { to: (v) => v, from: (v) => parseFloat(v) },
+  })
   basePrice: number;
 
   @Column({ length: 3 })

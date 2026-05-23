@@ -1,0 +1,112 @@
+GET {{baseUrl}}/categories
+- In swagger schema says "data" will return "OrderResponseDto", but it's not.
+- Current example response:
+```
+{
+  "total": 100,
+  "page": 1,
+  "limit": 20,
+  "data": [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "orderNumber": "ORD-20240101-0001",
+      "paymentStatus": "pending",
+      "fulfillmentStatus": "unfulfilled",
+      "totalAmount": 65.97,
+      "totalCurrency": "USD",
+      "shippingMethodName": "Standard Shipping",
+      "shippingPrice": 5.99,
+      "shippingCurrency": "USD",
+      "shippingAddress": {
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "company": "Acme Corp",
+        "address1": "123 Main St",
+        "address2": "Apt 4B",
+        "city": "New York",
+        "country": "US",
+        "province": "NY",
+        "postalCode": "10001",
+        "phone": "+1 555 000 0000"
+      },
+      "billingAddress": {
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "company": "Acme Corp",
+        "address1": "123 Main St",
+        "address2": "Apt 4B",
+        "city": "New York",
+        "country": "US",
+        "province": "NY",
+        "postalCode": "10001",
+        "phone": "+1 555 000 0000"
+      },
+      "items": [
+        {
+          "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+          "productId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+          "productName": "Blue Widget",
+          "productSku": "BLU-M-001",
+          "productPrice": 29.99,
+          "productCurrency": "USD",
+          "quantity": 2,
+          "total": 59.98
+        }
+      ],
+      "createdAt": "2026-05-23T11:13:53.889Z"
+    }
+  ]
+}
+```
+Real Response body:
+```
+{
+  "data": [
+    {
+      "id": "cfe6273f-cbf7-48a0-9644-e19d11dada21",
+      "slug": "headwear",
+      "displayName": "Headwear",
+      "subCategories": [
+        {
+          "id": "332503e3-c4d0-4706-907b-412131bba243",
+          "slug": "caps",
+          "displayName": "Caps",
+          "categoryId": "cfe6273f-cbf7-48a0-9644-e19d11dada21"
+        },
+        {
+          "id": "aa7b5769-1d9a-4e3e-8d6b-c0c202689dec",
+          "slug": "beanies",
+          "displayName": "Beanies",
+          "categoryId": "cfe6273f-cbf7-48a0-9644-e19d11dada21"
+        }
+      ],
+      "createdAt": "2026-05-22T15:06:18.669Z",
+      "updatedAt": "2026-05-22T15:06:18.669Z"
+    },
+    {
+      "id": "794f2d81-1912-4050-8154-dd22edd08a73",
+      "slug": "tops",
+      "displayName": "Tops",
+      "subCategories": [
+        {
+          "id": "fd420852-cf84-4eed-bfa8-3f7edcce5256",
+          "slug": "t-shirts",
+          "displayName": "T-Shirts",
+          "categoryId": "794f2d81-1912-4050-8154-dd22edd08a73"
+        },
+        {
+          "id": "8fefa2aa-4b44-4cc4-ba74-9136653846c2",
+          "slug": "hoodies",
+          "displayName": "Hoodies",
+          "categoryId": "794f2d81-1912-4050-8154-dd22edd08a73"
+        }
+      ],
+      "createdAt": "2026-05-22T15:06:18.673Z",
+      "updatedAt": "2026-05-22T15:06:18.673Z"
+    }
+  ],
+  "total": 2,
+  "page": 1,
+  "limit": 20
+}
+```
