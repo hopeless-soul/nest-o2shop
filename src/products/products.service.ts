@@ -60,6 +60,8 @@ export class ProductsService {
     const qb = this.productRepo
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.defaultVariant', 'defaultVariant')
+      .leftJoinAndSelect('product.primaryPhoto', 'primaryPhoto')
+      .leftJoinAndSelect('product.secondaryPhoto', 'secondaryPhoto')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.subCategory', 'subCategory')
       .leftJoinAndSelect('product.collection', 'collection');
@@ -123,6 +125,8 @@ export class ProductsService {
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.defaultVariant', 'defaultVariant')
       .leftJoinAndSelect('defaultVariant.mainPhoto', 'defaultVariantPhoto')
+      .leftJoinAndSelect('product.primaryPhoto', 'primaryPhoto')
+      .leftJoinAndSelect('product.secondaryPhoto', 'secondaryPhoto')
       .leftJoinAndSelect('product.photos', 'photos')
       .leftJoinAndSelect('product.variants', 'variants')
       .leftJoinAndSelect('variants.mainPhoto', 'variantPhoto')
@@ -152,6 +156,8 @@ export class ProductsService {
       withDeleted: true,
       relations: {
         defaultVariant: true,
+        primaryPhoto: true,
+        secondaryPhoto: true,
         photos: true,
         variants: true,
         category: true,
@@ -174,7 +180,39 @@ export class ProductsService {
 
   async update(id: string, dto: UpdateProductDto): Promise<Product> {
     const product = await this.findById(id);
-    Object.assign(product, dto);
+    const { primaryPhotoId, secondaryPhotoId, ...rest } = dto;
+    Object.assign(product, rest);
+
+    if (primaryPhotoId !== undefined) {
+      if (primaryPhotoId === null) {
+        product.primaryPhotoId = null;
+      } else {
+        const photo = await this.photoRepo.findOne({
+          where: { id: primaryPhotoId, productId: id },
+        });
+        if (!photo)
+          throw new NotFoundException(
+            `Photo ${primaryPhotoId} not found on this product`,
+          );
+        product.primaryPhotoId = primaryPhotoId;
+      }
+    }
+
+    if (secondaryPhotoId !== undefined) {
+      if (secondaryPhotoId === null) {
+        product.secondaryPhotoId = null;
+      } else {
+        const photo = await this.photoRepo.findOne({
+          where: { id: secondaryPhotoId, productId: id },
+        });
+        if (!photo)
+          throw new NotFoundException(
+            `Photo ${secondaryPhotoId} not found on this product`,
+          );
+        product.secondaryPhotoId = secondaryPhotoId;
+      }
+    }
+
     return this.productRepo.save(product);
   }
 

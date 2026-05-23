@@ -70,6 +70,20 @@ export class Product {
   @JoinColumn({ name: 'defaultVariantId' })
   defaultVariant?: ProductVariant;
 
+  @Column({ nullable: true })
+  primaryPhotoId: string | null;
+
+  @ManyToOne(() => ProductPhoto, { nullable: true, onDelete: 'SET NULL', eager: false })
+  @JoinColumn({ name: 'primaryPhotoId' })
+  primaryPhoto: ProductPhoto | null;
+
+  @Column({ nullable: true })
+  secondaryPhotoId: string | null;
+
+  @ManyToOne(() => ProductPhoto, { nullable: true, onDelete: 'SET NULL', eager: false })
+  @JoinColumn({ name: 'secondaryPhotoId' })
+  secondaryPhoto: ProductPhoto | null;
+
   @OneToMany(() => ProductPhoto, (photo) => photo.product, { cascade: true })
   photos: ProductPhoto[];
 

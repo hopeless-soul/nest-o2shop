@@ -10,7 +10,7 @@ import {
 import { plainToInstance } from 'class-transformer';
 import { ProductsService } from './products.service';
 import { FilterProductsQueryDto } from './dto/filter-products-query.dto';
-import { ProductResponseDto } from './dto/product-response.dto';
+import { ProductResponseDto, ProductListItemResponseDto } from './dto/product-response.dto';
 import {
   PaginatedResponseDto,
   PaginatedDto,
@@ -29,17 +29,17 @@ export class ProductsController {
     description:
       'Browse the public product catalogue with optional filters for collection, category, price range, and sort order.',
   })
-  @ApiOkResponse({ type: PaginatedDto(ProductResponseDto) })
+  @ApiOkResponse({ type: PaginatedDto(ProductListItemResponseDto) })
   @ApiBadRequestResponse({ type: ErrorResponseDto })
   @Auth(AuthType.None)
   @Get()
   async findAll(
     @Query() query: FilterProductsQueryDto,
-  ): Promise<PaginatedResponseDto<ProductResponseDto>> {
+  ): Promise<PaginatedResponseDto<ProductListItemResponseDto>> {
     const result = await this.productsService.findAll(query, false);
     return {
       data: result.data.map((p) =>
-        plainToInstance(ProductResponseDto, p, {
+        plainToInstance(ProductListItemResponseDto, p, {
           excludeExtraneousValues: true,
         }),
       ),

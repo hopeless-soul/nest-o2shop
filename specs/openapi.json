@@ -1462,7 +1462,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginatedProductResponseDto"
+                  "$ref": "#/components/schemas/PaginatedProductListItemResponseDto"
                 }
               }
             }
@@ -1682,7 +1682,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginatedAdminProductResponseDto"
+                  "$ref": "#/components/schemas/PaginatedProductListItemResponseDto"
                 }
               }
             }
@@ -4180,6 +4180,25 @@
           "displayName"
         ]
       },
+      "ProductPhotoSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string"
+          },
+          "altText": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "url"
+        ]
+      },
       "ProductPhotoResponseDto": {
         "type": "object",
         "properties": {
@@ -4325,6 +4344,111 @@
           "displayName"
         ]
       },
+      "ProductListItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "blue_widget"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Blue Widget"
+          },
+          "basePrice": {
+            "type": "number",
+            "example": 29.99
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "rating": {
+            "type": "object",
+            "nullable": true,
+            "example": 4.5
+          },
+          "primaryPhoto": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
+              }
+            ]
+          },
+          "secondaryPhoto": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
+              }
+            ]
+          },
+          "defaultVariant": {
+            "$ref": "#/components/schemas/ProductVariantResponseDto"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductVariantResponseDto"
+            }
+          },
+          "collection": {
+            "$ref": "#/components/schemas/CollectionSummaryDto"
+          },
+          "category": {
+            "$ref": "#/components/schemas/CategorySummaryDto"
+          },
+          "subCategory": {
+            "$ref": "#/components/schemas/SubCategorySummaryDto"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "displayName",
+          "basePrice",
+          "currency",
+          "variants",
+          "category",
+          "subCategory"
+        ]
+      },
+      "PaginatedProductListItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductListItemResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
+        ]
+      },
       "ProductResponseDto": {
         "type": "object",
         "properties": {
@@ -4412,6 +4536,24 @@
             "nullable": true,
             "example": 4.5
           },
+          "primaryPhoto": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
+              }
+            ]
+          },
+          "secondaryPhoto": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
+              }
+            ]
+          },
           "photos": {
             "type": "array",
             "items": {
@@ -4447,35 +4589,6 @@
           "variants",
           "category",
           "subCategory"
-        ]
-      },
-      "PaginatedProductResponseDto": {
-        "type": "object",
-        "properties": {
-          "total": {
-            "type": "number",
-            "example": 100
-          },
-          "page": {
-            "type": "number",
-            "example": 1
-          },
-          "limit": {
-            "type": "number",
-            "example": 20
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProductResponseDto"
-            }
-          }
-        },
-        "required": [
-          "total",
-          "page",
-          "limit",
-          "data"
         ]
       },
       "AdminProductResponseDto": {
@@ -4565,6 +4678,24 @@
             "nullable": true,
             "example": 4.5
           },
+          "primaryPhoto": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
+              }
+            ]
+          },
+          "secondaryPhoto": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
+              }
+            ]
+          },
           "photos": {
             "type": "array",
             "items": {
@@ -4620,35 +4751,6 @@
           "isPublished",
           "createdAt",
           "updatedAt"
-        ]
-      },
-      "PaginatedAdminProductResponseDto": {
-        "type": "object",
-        "properties": {
-          "total": {
-            "type": "number",
-            "example": 100
-          },
-          "page": {
-            "type": "number",
-            "example": 1
-          },
-          "limit": {
-            "type": "number",
-            "example": 20
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AdminProductResponseDto"
-            }
-          }
-        },
-        "required": [
-          "total",
-          "page",
-          "limit",
-          "data"
         ]
       },
       "CreateProductDto": {
@@ -4859,6 +4961,16 @@
             "type": "boolean",
             "default": false,
             "example": false
+          },
+          "primaryPhotoId": {
+            "type": "object",
+            "format": "uuid",
+            "nullable": true
+          },
+          "secondaryPhotoId": {
+            "type": "object",
+            "format": "uuid",
+            "nullable": true
           }
         }
       },

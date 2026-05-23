@@ -19,6 +19,7 @@ import { OrderItem } from '../src/orders/entities/order-item.entity';
 import { PaymentStatus } from '../src/orders/enums/payment-status.enum';
 import { FulfillmentStatus } from '../src/orders/enums/fulfillment-status.enum';
 import { SavedAddress } from '../src/addresses/entities/saved-address.entity';
+import { RefreshToken } from '../src/auth/entities/refresh-token.entity';
 
 function generateSku(productName: string, colorName: string, size: string): string {
     return [productName, colorName, size]
@@ -37,6 +38,7 @@ const dataSource = new DataSource({
         User, Collection, Category, SubCategory,
         Product, ProductVariant, ProductPhoto,
         Review, ShippingMethod, Order, OrderItem, SavedAddress,
+        RefreshToken,
     ],
     synchronize: false,
 });
@@ -214,7 +216,7 @@ async function seed() {
         mainPhoto: capPhoto2,
         mainPhotoId: capPhoto2.id,
     }));
-    await productRepo.update(cap.id, { defaultVariantId: capVarBlack.id });
+    await productRepo.update(cap.id, { defaultVariantId: capVarBlack.id, primaryPhotoId: capPhoto1.id, secondaryPhotoId: capPhoto2.id });
     console.log('   ✓ black_wool_cap (2 variants, 2 photos)');
 
     // ── Product 2: Classic White Tee ──
@@ -295,7 +297,8 @@ async function seed() {
         mainPhoto: teePhoto1,
         mainPhotoId: teePhoto1.id,
     }));
-    await productRepo.update(tee.id, { defaultVariantId: teeVarWhiteM.id });
+    const teePhoto2Id = (await photoRepo.findOne({ where: { productId: tee.id, sortOrder: 1 } }))!.id;
+    await productRepo.update(tee.id, { defaultVariantId: teeVarWhiteM.id, primaryPhotoId: teePhoto1.id, secondaryPhotoId: teePhoto2Id });
     console.log('   ✓ classic_white_tee (4 variants, 2 photos)');
 
     // ── Product 3: Oversized Hoodie ──
@@ -376,7 +379,8 @@ async function seed() {
         mainPhoto: hoodiePhoto1,
         mainPhotoId: hoodiePhoto1.id,
     }));
-    await productRepo.update(hoodie.id, { defaultVariantId: hoodieVarGreyM.id });
+    const hoodiePhoto2Id = (await photoRepo.findOne({ where: { productId: hoodie.id, sortOrder: 1 } }))!.id;
+    await productRepo.update(hoodie.id, { defaultVariantId: hoodieVarGreyM.id, primaryPhotoId: hoodiePhoto1.id, secondaryPhotoId: hoodiePhoto2Id });
     console.log('   ✓ oversized_hoodie (4 variants, 2 photos)');
 
     // ── Reviews ──
