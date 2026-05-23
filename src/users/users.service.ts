@@ -70,18 +70,24 @@ export class UsersService {
     );
   }
 
+  // TEST: IMPLEMENTATION 
   findAll() {
-    return `This action returns all users`;
+    // return `This action returns all users`;
+    return this.userRepository.find();
   }
+
+  // TEST: IMPLEMENTATION 
 
   findOne(id: string) {
     return `This action returns a #${id} user`;
   }
 
+  // TEST: IMPLEMENTATION 
   update(id: string, updateUserDto: any) {
     return `This action updates a #${id} user`;
   }
 
+  // TEST: IMPLEMENTATION 
   remove(id: string) {
     return `This action removes a #${id} user`;
   }
