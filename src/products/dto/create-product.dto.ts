@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsBoolean,
   IsNumber,
   IsObject,
@@ -82,6 +83,12 @@ export class CreateProductDto {
   @Min(0)
   basePrice: number;
 
+  @ApiPropertyOptional({ minimum: 0, example: 34.99, nullable: true })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  compareAtPrice?: number;
+
   @ApiProperty({ minLength: 3, maxLength: 3, example: 'USD' })
   @IsString()
   @Length(3, 3)
@@ -95,4 +102,10 @@ export class CreateProductDto {
   @IsOptional()
   @IsBoolean()
   isPublished?: boolean;
+
+  @ApiPropertyOptional({ type: [String], example: ['sale', 'new-arrival'] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
 }

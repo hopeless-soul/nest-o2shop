@@ -17,4 +17,20 @@ export class ProductPhotoResponseDto {
   @ApiProperty({ example: 0 })
   @Expose()
   sortOrder: number;
+
+  @ApiPropertyOptional({ example: 1200, nullable: true })
+  @Expose()
+  width?: number | null;
+
+  @ApiPropertyOptional({ example: 1500, nullable: true })
+  @Expose()
+  height?: number | null;
+
+  @ApiPropertyOptional({ example: 0.8, nullable: true })
+  @Expose()
+  aspectRatio?: number | null;
+
+  @ApiPropertyOptional({ type: [String], example: [] })
+  @Expose()
+  variantIds?: string[];
 }

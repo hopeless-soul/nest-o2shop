@@ -1,6 +1,7 @@
 /// <reference types="multer" />
 import { randomUUID } from 'crypto';
 import { extname } from 'path';
+import sharp from 'sharp';
 import {
   ConflictException,
   Injectable,
@@ -60,8 +61,10 @@ export class ProductsService {
     const qb = this.productRepo
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.defaultVariant', 'defaultVariant')
+      .leftJoinAndSelect('defaultVariant.featuredImage', 'defaultVariantPhoto')
+      .leftJoinAndSelect('product.variants', 'variants')
+      .leftJoinAndSelect('variants.featuredImage', 'variantPhoto')
       .leftJoinAndSelect('product.primaryPhoto', 'primaryPhoto')
-      .leftJoinAndSelect('product.secondaryPhoto', 'secondaryPhoto')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.subCategory', 'subCategory')
       .leftJoinAndSelect('product.collection', 'collection');
@@ -114,6 +117,9 @@ export class ProductsService {
     }
 
     const [data, total] = await qb.getManyAndCount();
+    for (const product of data) {
+      this.attachComputedFields(product);
+    }
     return { data, total };
   }
 
@@ -124,12 +130,11 @@ export class ProductsService {
     const qb = this.productRepo
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.defaultVariant', 'defaultVariant')
-      .leftJoinAndSelect('defaultVariant.mainPhoto', 'defaultVariantPhoto')
+      .leftJoinAndSelect('defaultVariant.featuredImage', 'defaultVariantPhoto')
       .leftJoinAndSelect('product.primaryPhoto', 'primaryPhoto')
-      .leftJoinAndSelect('product.secondaryPhoto', 'secondaryPhoto')
       .leftJoinAndSelect('product.photos', 'photos')
       .leftJoinAndSelect('product.variants', 'variants')
-      .leftJoinAndSelect('variants.mainPhoto', 'variantPhoto')
+      .leftJoinAndSelect('variants.featuredImage', 'variantPhoto')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.subCategory', 'subCategory')
       .leftJoinAndSelect('product.collection', 'collection')
@@ -144,6 +149,7 @@ export class ProductsService {
     const product = await qb.getOne();
     if (!product) throw new NotFoundException(`Product "${name}" not found`);
 
+    this.attachComputedFields(product);
     const rating = await this.computeRating(product.id);
     return { ...product, rating };
   }
@@ -155,17 +161,17 @@ export class ProductsService {
       where: { id },
       withDeleted: true,
       relations: {
-        defaultVariant: true,
+        defaultVariant: { featuredImage: true },
         primaryPhoto: true,
-        secondaryPhoto: true,
         photos: true,
-        variants: true,
+        variants: { featuredImage: true },
         category: true,
         subCategory: true,
         collection: true,
       },
     });
     if (!product) throw new NotFoundException(`Product #${id} not found`);
+    this.attachComputedFields(product);
     const rating = await this.computeRating(product.id);
     return { ...product, rating };
   }
@@ -180,7 +186,7 @@ export class ProductsService {
 
   async update(id: string, dto: UpdateProductDto): Promise<Product> {
     const product = await this.findById(id);
-    const { primaryPhotoId, secondaryPhotoId, ...rest } = dto;
+    const { primaryPhotoId, ...rest } = dto;
     Object.assign(product, rest);
 
     if (primaryPhotoId !== undefined) {
@@ -195,21 +201,6 @@ export class ProductsService {
             `Photo ${primaryPhotoId} not found on this product`,
           );
         product.primaryPhotoId = primaryPhotoId;
-      }
-    }
-
-    if (secondaryPhotoId !== undefined) {
-      if (secondaryPhotoId === null) {
-        product.secondaryPhotoId = null;
-      } else {
-        const photo = await this.photoRepo.findOne({
-          where: { id: secondaryPhotoId, productId: id },
-        });
-        if (!photo)
-          throw new NotFoundException(
-            `Photo ${secondaryPhotoId} not found on this product`,
-          );
-        product.secondaryPhotoId = secondaryPhotoId;
       }
     }
 
@@ -271,8 +262,27 @@ export class ProductsService {
     const ext = extname(file.originalname).toLowerCase() || '.bin';
     const subPath = `products/${productId}/${randomUUID()}${ext}`;
     const url = await this.storageService.save(file, subPath);
+
+    let width: number | null = null;
+    let height: number | null = null;
+    let aspectRatio: number | null = null;
+
+    if (file.buffer) {
+      try {
+        const meta = await sharp(file.buffer).metadata();
+        width = meta.width ?? null;
+        height = meta.height ?? null;
+        aspectRatio =
+          meta.width && meta.height
+            ? parseFloat((meta.width / meta.height).toFixed(4))
+            : null;
+      } catch {
+        // dimensions remain null if sharp cannot parse the file
+      }
+    }
+
     return this.photoRepo.save(
-      this.photoRepo.create({ productId, url, altText }),
+      this.photoRepo.create({ productId, url, altText, width, height, aspectRatio }),
     );
   }
 
@@ -328,6 +338,55 @@ export class ProductsService {
       .getRawOne<{ avg: string | null }>();
 
     return result?.avg != null ? parseFloat(result.avg) : null;
+  }
+
+  private attachComputedFields(product: Product): void {
+    const variants = product.variants ?? [];
+
+    // Per-variant available flag
+    for (const v of variants) {
+      (v as any).available = v.stock > 0;
+    }
+    if (product.defaultVariant) {
+      (product.defaultVariant as any).available =
+        product.defaultVariant.stock > 0;
+    }
+
+    // Product-level pricing and availability
+    const prices =
+      variants.length > 0
+        ? variants.map((v) => v.priceOverride ?? product.basePrice)
+        : [product.basePrice];
+    const priceMin = Math.min(...prices);
+    const priceMax = Math.max(...prices);
+
+    (product as any).available = variants.some((v) => v.stock > 0);
+    (product as any).priceMin = priceMin;
+    (product as any).priceMax = priceMax;
+    (product as any).priceVaries = priceMin !== priceMax;
+
+    // Options — group unique size values (and color if multi-color product)
+    const sizes = [...new Set(variants.map((v) => v.size))];
+    const colors = [...new Set(variants.map((v) => v.colorName))];
+    const options: { name: string; position: number; values: string[] }[] = [];
+    if (sizes.length > 0) options.push({ name: 'Size', position: 1, values: sizes });
+    if (colors.length > 1) options.push({ name: 'Color', position: 2, values: colors });
+    (product as any).options = options;
+
+    // variantIds reverse lookup on photos (only when full photos array is loaded)
+    if (product.photos?.length) {
+      const map = new Map<string, string[]>();
+      for (const v of variants) {
+        if (v.featuredImageId) {
+          const ids = map.get(v.featuredImageId) ?? [];
+          ids.push(v.id);
+          map.set(v.featuredImageId, ids);
+        }
+      }
+      for (const p of product.photos) {
+        p.variantIds = map.get(p.id) ?? [];
+      }
+    }
   }
 
   private generateSku(

@@ -26,6 +26,24 @@ export class ProductPhoto {
   @Column({ default: 0 })
   sortOrder: number;
 
+  @Column({ type: 'int', nullable: true })
+  width?: number | null;
+
+  @Column({ type: 'int', nullable: true })
+  height?: number | null;
+
+  @Column({
+    type: 'decimal',
+    precision: 6,
+    scale: 4,
+    nullable: true,
+    transformer: { to: (v) => v, from: (v) => (v == null ? v : parseFloat(v)) },
+  })
+  aspectRatio?: number | null;
+
   @CreateDateColumn()
   createdAt: Date;
+
+  /** Computed in service — not persisted */
+  variantIds?: string[];
 }

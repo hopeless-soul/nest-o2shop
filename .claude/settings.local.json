@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\hk\\\\Documents\\\\Development\\\\nest\\\\nest-o2shop\\\\src\" -Recurse -Filter \"*product*\" -Directory)",
+      "Bash(Select-Object FullName)",
+      "Bash(pnpm approve-builds *)",
+      "Bash(node -e \"const sharp = require\\('sharp'\\); console.log\\('sharp version:', sharp.versions?.sharp || 'ok'\\);\")",
+      "Bash(npx tsc *)",
+      "Bash(powershell -Command \"\\(Get-Content scripts/seed.ts\\) -replace 'mainPhotoId:', 'featuredImageId:' -replace 'mainPhoto:', 'featuredImage:' | Set-Content scripts/seed.ts -Encoding utf8\")",
+      "Bash(node -e \"const f = require\\('fs'\\); const j = JSON.parse\\(f.readFileSync\\('specs/openapi.json'\\)\\); const schemas = Object.keys\\(j.components.schemas\\); console.log\\(schemas.join\\('\\\\n'\\)\\);\")",
+      "Bash(node -e ' *)",
+      "PowerShell(npx tsc --noEmit 2>&1)"
+    ]
+  }
+}

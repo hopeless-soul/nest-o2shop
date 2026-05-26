@@ -4192,11 +4192,48 @@
           },
           "altText": {
             "type": "string"
+          },
+          "width": {
+            "type": "object",
+            "example": 1200,
+            "nullable": true
+          },
+          "height": {
+            "type": "object",
+            "example": 1500,
+            "nullable": true
+          },
+          "aspectRatio": {
+            "type": "object",
+            "example": 0.8,
+            "nullable": true
           }
         },
         "required": [
           "id",
           "url"
+        ]
+      },
+      "QuantityRuleResponseDto": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "number",
+            "example": 1
+          },
+          "max": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          },
+          "increment": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "min",
+          "increment"
         ]
       },
       "ProductPhotoResponseDto": {
@@ -4217,6 +4254,28 @@
           "sortOrder": {
             "type": "number",
             "example": 0
+          },
+          "width": {
+            "type": "object",
+            "example": 1200,
+            "nullable": true
+          },
+          "height": {
+            "type": "object",
+            "example": 1500,
+            "nullable": true
+          },
+          "aspectRatio": {
+            "type": "object",
+            "example": 0.8,
+            "nullable": true
+          },
+          "variantIds": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -4256,15 +4315,46 @@
             "type": "number",
             "example": 50
           },
+          "available": {
+            "type": "boolean",
+            "example": true
+          },
           "priceOverride": {
             "type": "number",
             "example": 34.99
           },
-          "mainPhotoId": {
+          "compareAtPrice": {
+            "type": "object",
+            "example": 59.99,
+            "nullable": true
+          },
+          "weight": {
+            "type": "object",
+            "example": 450,
+            "nullable": true,
+            "description": "Weight in grams"
+          },
+          "inventoryPolicy": {
+            "type": "string",
+            "example": "deny",
+            "enum": [
+              "deny",
+              "continue"
+            ]
+          },
+          "quantityRule": {
+            "$ref": "#/components/schemas/QuantityRuleResponseDto"
+          },
+          "barcode": {
+            "type": "object",
+            "example": "9781234567897",
+            "nullable": true
+          },
+          "featuredImageId": {
             "type": "string",
             "format": "uuid"
           },
-          "mainPhoto": {
+          "featuredImage": {
             "$ref": "#/components/schemas/ProductPhotoResponseDto"
           }
         },
@@ -4275,7 +4365,10 @@
           "colorValue",
           "size",
           "sku",
-          "stock"
+          "stock",
+          "available",
+          "inventoryPolicy",
+          "quantityRule"
         ]
       },
       "CollectionSummaryDto": {
@@ -4367,21 +4460,33 @@
             "type": "string",
             "example": "USD"
           },
+          "available": {
+            "type": "boolean",
+            "example": true
+          },
+          "priceMin": {
+            "type": "number",
+            "example": 29.99
+          },
+          "priceMax": {
+            "type": "number",
+            "example": 49.99
+          },
+          "priceVaries": {
+            "type": "boolean",
+            "example": false
+          },
+          "compareAtPrice": {
+            "type": "object",
+            "example": 34.99,
+            "nullable": true
+          },
           "rating": {
             "type": "object",
             "nullable": true,
             "example": 4.5
           },
           "primaryPhoto": {
-            "nullable": true,
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
-              }
-            ]
-          },
-          "secondaryPhoto": {
             "nullable": true,
             "type": "object",
             "allOf": [
@@ -4415,6 +4520,10 @@
           "displayName",
           "basePrice",
           "currency",
+          "available",
+          "priceMin",
+          "priceMax",
+          "priceVaries",
           "variants",
           "category",
           "subCategory"
@@ -4449,6 +4558,37 @@
           "data"
         ]
       },
+      "ProductOptionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Size"
+          },
+          "position": {
+            "type": "number",
+            "example": 1
+          },
+          "values": {
+            "example": [
+              "XS",
+              "S",
+              "M",
+              "L",
+              "XL"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "position",
+          "values"
+        ]
+      },
       "ProductResponseDto": {
         "type": "object",
         "properties": {
@@ -4471,6 +4611,43 @@
           "currency": {
             "type": "string",
             "example": "USD"
+          },
+          "available": {
+            "type": "boolean",
+            "example": true
+          },
+          "priceMin": {
+            "type": "number",
+            "example": 29.99
+          },
+          "priceMax": {
+            "type": "number",
+            "example": 49.99
+          },
+          "priceVaries": {
+            "type": "boolean",
+            "example": false
+          },
+          "compareAtPrice": {
+            "type": "object",
+            "example": 34.99,
+            "nullable": true
+          },
+          "tags": {
+            "example": [
+              "sale",
+              "new-arrival"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductOptionDto"
+            }
           },
           "description": {
             "type": "object",
@@ -4536,16 +4713,11 @@
             "nullable": true,
             "example": 4.5
           },
-          "primaryPhoto": {
-            "nullable": true,
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
-              }
-            ]
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
           },
-          "secondaryPhoto": {
+          "primaryPhoto": {
             "nullable": true,
             "type": "object",
             "allOf": [
@@ -4585,6 +4757,13 @@
           "displayName",
           "basePrice",
           "currency",
+          "available",
+          "priceMin",
+          "priceMax",
+          "priceVaries",
+          "tags",
+          "options",
+          "createdAt",
           "photos",
           "variants",
           "category",
@@ -4613,6 +4792,43 @@
           "currency": {
             "type": "string",
             "example": "USD"
+          },
+          "available": {
+            "type": "boolean",
+            "example": true
+          },
+          "priceMin": {
+            "type": "number",
+            "example": 29.99
+          },
+          "priceMax": {
+            "type": "number",
+            "example": 49.99
+          },
+          "priceVaries": {
+            "type": "boolean",
+            "example": false
+          },
+          "compareAtPrice": {
+            "type": "object",
+            "example": 34.99,
+            "nullable": true
+          },
+          "tags": {
+            "example": [
+              "sale",
+              "new-arrival"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductOptionDto"
+            }
           },
           "description": {
             "type": "object",
@@ -4678,16 +4894,11 @@
             "nullable": true,
             "example": 4.5
           },
-          "primaryPhoto": {
-            "nullable": true,
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
-              }
-            ]
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
           },
-          "secondaryPhoto": {
+          "primaryPhoto": {
             "nullable": true,
             "type": "object",
             "allOf": [
@@ -4729,10 +4940,6 @@
             "nullable": true,
             "example": null
           },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          },
           "updatedAt": {
             "format": "date-time",
             "type": "string"
@@ -4744,12 +4951,18 @@
           "displayName",
           "basePrice",
           "currency",
+          "available",
+          "priceMin",
+          "priceMax",
+          "priceVaries",
+          "tags",
+          "options",
+          "createdAt",
           "photos",
           "variants",
           "category",
           "subCategory",
           "isPublished",
-          "createdAt",
           "updatedAt"
         ]
       },
@@ -4783,6 +4996,12 @@
             "type": "number",
             "minimum": 0,
             "example": 29.99
+          },
+          "compareAtPrice": {
+            "type": "number",
+            "minimum": 0,
+            "example": 34.99,
+            "nullable": true
           },
           "currency": {
             "type": "string",
@@ -4853,6 +5072,16 @@
             "type": "boolean",
             "default": false,
             "example": false
+          },
+          "tags": {
+            "example": [
+              "sale",
+              "new-arrival"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -4895,6 +5124,12 @@
             "minimum": 0,
             "example": 29.99
           },
+          "compareAtPrice": {
+            "type": "number",
+            "minimum": 0,
+            "example": 34.99,
+            "nullable": true
+          },
           "currency": {
             "type": "string",
             "minLength": 3,
@@ -4962,17 +5197,46 @@
             "default": false,
             "example": false
           },
-          "primaryPhotoId": {
-            "type": "object",
-            "format": "uuid",
-            "nullable": true
+          "tags": {
+            "example": [
+              "sale",
+              "new-arrival"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
-          "secondaryPhotoId": {
+          "primaryPhotoId": {
             "type": "object",
             "format": "uuid",
             "nullable": true
           }
         }
+      },
+      "QuantityRuleDto": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1
+          },
+          "max": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          },
+          "increment": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1
+          }
+        },
+        "required": [
+          "min",
+          "increment"
+        ]
       },
       "CreateVariantDto": {
         "type": "object",
@@ -5004,7 +5268,35 @@
             "minimum": 0,
             "example": 34.99
           },
-          "mainPhotoId": {
+          "compareAtPrice": {
+            "type": "number",
+            "minimum": 0,
+            "example": 59.99,
+            "nullable": true
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "example": 450,
+            "description": "Weight in grams"
+          },
+          "inventoryPolicy": {
+            "type": "string",
+            "enum": [
+              "deny",
+              "continue"
+            ],
+            "example": "deny"
+          },
+          "quantityRule": {
+            "$ref": "#/components/schemas/QuantityRuleDto"
+          },
+          "barcode": {
+            "type": "string",
+            "example": "9781234567897",
+            "nullable": true
+          },
+          "featuredImageId": {
             "type": "string",
             "format": "uuid"
           }
@@ -5045,7 +5337,35 @@
             "minimum": 0,
             "example": 34.99
           },
-          "mainPhotoId": {
+          "compareAtPrice": {
+            "type": "number",
+            "minimum": 0,
+            "example": 59.99,
+            "nullable": true
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "example": 450,
+            "description": "Weight in grams"
+          },
+          "inventoryPolicy": {
+            "type": "string",
+            "enum": [
+              "deny",
+              "continue"
+            ],
+            "example": "deny"
+          },
+          "quantityRule": {
+            "$ref": "#/components/schemas/QuantityRuleDto"
+          },
+          "barcode": {
+            "type": "string",
+            "example": "9781234567897",
+            "nullable": true
+          },
+          "featuredImageId": {
             "type": "string",
             "format": "uuid"
           }

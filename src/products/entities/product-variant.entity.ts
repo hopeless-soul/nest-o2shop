@@ -47,12 +47,36 @@ export class ProductVariant {
   })
   priceOverride?: number;
 
-  @Column({ nullable: true })
-  mainPhotoId?: string;
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    transformer: { to: (v) => v, from: (v) => (v == null ? v : parseFloat(v)) },
+  })
+  compareAtPrice?: number | null;
+
+  @Column({ type: 'int', nullable: true })
+  weight?: number | null;
+
+  @Column({ default: 'deny' })
+  inventoryPolicy: 'deny' | 'continue';
+
+  @Column({
+    type: 'jsonb',
+    default: () => `'{"min":1,"max":null,"increment":1}'`,
+  })
+  quantityRule: { min: number; max: number | null; increment: number };
+
+  @Column({ type: 'varchar', nullable: true })
+  barcode?: string | null;
+
+  @Column({ name: 'mainPhotoId', nullable: true })
+  featuredImageId?: string;
 
   @ManyToOne(() => ProductPhoto, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'mainPhotoId' })
-  mainPhoto?: ProductPhoto;
+  featuredImage?: ProductPhoto;
 
   @CreateDateColumn()
   createdAt: Date;

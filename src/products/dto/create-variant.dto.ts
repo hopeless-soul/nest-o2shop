@@ -1,12 +1,34 @@
 import {
+  IsIn,
   IsInt,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   Min,
   Matches,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class QuantityRuleDto {
+  @ApiProperty({ example: 1, minimum: 1 })
+  @IsInt()
+  @Min(1)
+  min: number;
+
+  @ApiPropertyOptional({ example: null, nullable: true })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  max?: number | null;
+
+  @ApiProperty({ example: 1, minimum: 1 })
+  @IsInt()
+  @Min(1)
+  increment: number;
+}
 
 export class CreateVariantDto {
   @ApiProperty({ example: 'Navy Blue' })
@@ -39,8 +61,37 @@ export class CreateVariantDto {
   @Min(0)
   priceOverride?: number;
 
+  @ApiPropertyOptional({ minimum: 0, example: 59.99, nullable: true })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  compareAtPrice?: number;
+
+  @ApiPropertyOptional({ minimum: 0, example: 450, description: 'Weight in grams' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  weight?: number;
+
+  @ApiPropertyOptional({ enum: ['deny', 'continue'], example: 'deny' })
+  @IsOptional()
+  @IsIn(['deny', 'continue'])
+  inventoryPolicy?: 'deny' | 'continue';
+
+  @ApiPropertyOptional({ type: () => QuantityRuleDto })
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => QuantityRuleDto)
+  quantityRule?: QuantityRuleDto;
+
+  @ApiPropertyOptional({ example: '9781234567897', nullable: true })
+  @IsOptional()
+  @IsString()
+  barcode?: string;
+
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
   @IsString()
-  mainPhotoId?: string;
+  featuredImageId?: string;
 }

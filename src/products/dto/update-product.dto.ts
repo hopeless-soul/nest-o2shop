@@ -9,8 +9,4 @@ export class UpdateProductDto extends PartialType(CreateProductDto) {
   @IsUUID()
   primaryPhotoId?: string | null;
 
-  @ApiPropertyOptional({ format: 'uuid', nullable: true })
-  @IsOptional()
-  @IsUUID()
-  secondaryPhotoId?: string | null;
 }

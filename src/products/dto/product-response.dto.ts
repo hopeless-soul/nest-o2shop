@@ -8,6 +8,9 @@ export class ProductPhotoSummaryDto {
   @ApiProperty({ format: 'uuid' }) @Expose() id: string;
   @ApiProperty() @Expose() url: string;
   @ApiPropertyOptional() @Expose() altText?: string;
+  @ApiPropertyOptional({ example: 1200, nullable: true }) @Expose() width?: number | null;
+  @ApiPropertyOptional({ example: 1500, nullable: true }) @Expose() height?: number | null;
+  @ApiPropertyOptional({ example: 0.8, nullable: true }) @Expose() aspectRatio?: number | null;
 }
 
 const ProductDescriptionSchema = {
@@ -62,6 +65,12 @@ export class SubCategorySummaryDto {
   @ApiProperty({ example: 'T-Shirts' }) @Expose() displayName: string;
 }
 
+export class ProductOptionDto {
+  @ApiProperty({ example: 'Size' }) @Expose() name: string;
+  @ApiProperty({ example: 1 }) @Expose() position: number;
+  @ApiProperty({ type: [String], example: ['XS', 'S', 'M', 'L', 'XL'] }) @Expose() values: string[];
+}
+
 export class ProductResponseDto {
   @ApiProperty({ format: 'uuid' })
   @Expose()
@@ -83,6 +92,35 @@ export class ProductResponseDto {
   @Expose()
   currency: string;
 
+  @ApiProperty({ example: true })
+  @Expose()
+  available: boolean;
+
+  @ApiProperty({ example: 29.99 })
+  @Expose()
+  priceMin: number;
+
+  @ApiProperty({ example: 49.99 })
+  @Expose()
+  priceMax: number;
+
+  @ApiProperty({ example: false })
+  @Expose()
+  priceVaries: boolean;
+
+  @ApiPropertyOptional({ example: 34.99, nullable: true })
+  @Expose()
+  compareAtPrice?: number | null;
+
+  @ApiProperty({ type: [String], example: ['sale', 'new-arrival'] })
+  @Expose()
+  tags: string[];
+
+  @ApiProperty({ type: () => ProductOptionDto, isArray: true })
+  @Expose()
+  @Type(() => ProductOptionDto)
+  options: ProductOptionDto[];
+
   @ApiProperty(ProductDescriptionSchema as any)
   @Expose()
   description: ProductDescription;
@@ -91,15 +129,14 @@ export class ProductResponseDto {
   @Expose()
   rating?: number | null;
 
-  @ApiPropertyOptional({ type: () => ProductPhotoSummaryDto, nullable: true })
+  @ApiProperty()
   @Expose()
-  @Type(() => ProductPhotoSummaryDto)
-  primaryPhoto: ProductPhotoSummaryDto | null;
+  createdAt: Date;
 
   @ApiPropertyOptional({ type: () => ProductPhotoSummaryDto, nullable: true })
   @Expose()
   @Type(() => ProductPhotoSummaryDto)
-  secondaryPhoto: ProductPhotoSummaryDto | null;
+  primaryPhoto: ProductPhotoSummaryDto | null;
 
   @ApiProperty({ type: () => ProductPhotoResponseDto, isArray: true })
   @Expose()
@@ -143,10 +180,6 @@ export class AdminProductResponseDto extends ProductResponseDto {
 
   @ApiProperty()
   @Expose()
-  createdAt: Date;
-
-  @ApiProperty()
-  @Expose()
   updatedAt: Date;
 }
 
@@ -157,6 +190,13 @@ export class ProductListItemResponseDto {
   @ApiProperty({ example: 29.99 }) @Expose() basePrice: number;
   @ApiProperty({ example: 'USD' }) @Expose() currency: string;
 
+  @ApiProperty({ example: true }) @Expose() available: boolean;
+  @ApiProperty({ example: 29.99 }) @Expose() priceMin: number;
+  @ApiProperty({ example: 49.99 }) @Expose() priceMax: number;
+  @ApiProperty({ example: false }) @Expose() priceVaries: boolean;
+
+  @ApiPropertyOptional({ example: 34.99, nullable: true }) @Expose() compareAtPrice?: number | null;
+
   @ApiPropertyOptional({ nullable: true, example: 4.5 })
   @Expose()
   rating?: number | null;
@@ -165,11 +205,6 @@ export class ProductListItemResponseDto {
   @Expose()
   @Type(() => ProductPhotoSummaryDto)
   primaryPhoto: ProductPhotoSummaryDto | null;
-
-  @ApiPropertyOptional({ type: () => ProductPhotoSummaryDto, nullable: true })
-  @Expose()
-  @Type(() => ProductPhotoSummaryDto)
-  secondaryPhoto: ProductPhotoSummaryDto | null;
 
   @ApiPropertyOptional({ type: () => ProductVariantResponseDto })
   @Expose()

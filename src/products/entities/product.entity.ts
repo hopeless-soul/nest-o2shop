@@ -54,8 +54,20 @@ export class Product {
   })
   basePrice: number;
 
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    transformer: { to: (v) => v, from: (v) => (v == null ? v : parseFloat(v)) },
+  })
+  compareAtPrice?: number | null;
+
   @Column({ length: 3 })
   currency: string;
+
+  @Column({ type: 'text', array: true, default: '{}' })
+  tags: string[];
 
   @Column({ type: 'jsonb' })
   description: ProductDescription;
@@ -76,13 +88,6 @@ export class Product {
   @ManyToOne(() => ProductPhoto, { nullable: true, onDelete: 'SET NULL', eager: false })
   @JoinColumn({ name: 'primaryPhotoId' })
   primaryPhoto: ProductPhoto | null;
-
-  @Column({ nullable: true })
-  secondaryPhotoId: string | null;
-
-  @ManyToOne(() => ProductPhoto, { nullable: true, onDelete: 'SET NULL', eager: false })
-  @JoinColumn({ name: 'secondaryPhotoId' })
-  secondaryPhoto: ProductPhoto | null;
 
   @OneToMany(() => ProductPhoto, (photo) => photo.product, { cascade: true })
   photos: ProductPhoto[];
