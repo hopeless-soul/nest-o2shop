@@ -116,6 +116,10 @@ export class ProductResponseDto {
   @Expose()
   tags: string[];
 
+  @ApiPropertyOptional({ type: String, example: 'Ushanka' })
+  @Expose()
+  type?: string;
+
   @ApiProperty({ type: () => ProductOptionDto, isArray: true })
   @Expose()
   @Type(() => ProductOptionDto)
@@ -230,4 +234,8 @@ export class ProductListItemResponseDto {
   @Expose()
   @Type(() => SubCategorySummaryDto)
   subCategory: SubCategorySummaryDto;
+
+  @ApiPropertyOptional({ nullable: true, example: 'Ushanka' })
+  @Expose()
+  type?: string;
 }

@@ -108,4 +108,9 @@ export class CreateProductDto {
   @IsArray()
   @IsString({ each: true })
   tags?: string[];
+
+  @ApiPropertyOptional({ nullable: true, example: 'Ushanka' })
+  @IsOptional()
+  @IsString()
+  type?: string;
 }

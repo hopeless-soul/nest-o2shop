@@ -4512,6 +4512,11 @@
           },
           "subCategory": {
             "$ref": "#/components/schemas/SubCategorySummaryDto"
+          },
+          "type": {
+            "type": "string",
+            "nullable": true,
+            "example": "Ushanka"
           }
         },
         "required": [
@@ -4642,6 +4647,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "type": {
+            "type": "string",
+            "example": "Ushanka"
           },
           "options": {
             "type": "array",
@@ -4823,6 +4832,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "type": {
+            "type": "string",
+            "example": "Ushanka"
           },
           "options": {
             "type": "array",
@@ -5082,6 +5095,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "type": {
+            "type": "string",
+            "nullable": true,
+            "example": "Ushanka"
           }
         },
         "required": [
@@ -5206,6 +5224,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "type": {
+            "type": "string",
+            "nullable": true,
+            "example": "Ushanka"
           },
           "primaryPhotoId": {
             "type": "object",

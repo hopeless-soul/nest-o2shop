@@ -46,6 +46,10 @@ export class Product {
   @ManyToOne(() => SubCategory, { onDelete: 'RESTRICT' })
   subCategory: SubCategory;
 
+  // Note: the type is currently being used as main tag
+  @Column({ nullable: true, default: null })
+  type?: string;
+
   @Column({
     type: 'decimal',
     precision: 10,
