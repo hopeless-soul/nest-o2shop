@@ -117,8 +117,10 @@ export class ProductsService {
     }
 
     const [data, total] = await qb.getManyAndCount();
+    const ratingMap = await this.computeRatings(data.map((p) => p.id));
     for (const product of data) {
       this.attachComputedFields(product);
+      (product as any).rating = ratingMap.get(product.id) ?? null;
     }
     return { data, total };
   }
@@ -338,6 +340,29 @@ export class ProductsService {
       .getRawOne<{ avg: string | null }>();
 
     return result?.avg != null ? parseFloat(result.avg) : null;
+  }
+
+  private async computeRatings(
+    productIds: string[],
+  ): Promise<Map<string, number | null>> {
+    if (productIds.length === 0) return new Map();
+
+    const rows = await this.reviewRepo
+      .createQueryBuilder('review')
+      .select('review.productId', 'productId')
+      .addSelect('AVG(review.rating)', 'avg')
+      .where('review.productId IN (:...productIds)', { productIds })
+      .andWhere('review.status = :status', { status: ReviewStatus.APPROVED })
+      .groupBy('review.productId')
+      .getRawMany<{ productId: string; avg: string | null }>();
+
+    const map = new Map<string, number | null>(
+      productIds.map((id) => [id, null]),
+    );
+    for (const row of rows) {
+      map.set(row.productId, row.avg != null ? parseFloat(row.avg) : null);
+    }
+    return map;
   }
 
   private attachComputedFields(product: Product): void {
