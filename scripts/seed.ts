@@ -45,15 +45,15 @@ const dataSource = new DataSource({
 
 async function seed() {
     await dataSource.initialize();
-    console.log('âœ… Connected to database');
+    console.log('✅ Connected to database');
 
-    // â”€â”€ Clear â”€â”€
+    //
     console.log('ðŸ§¹ Clearing existing data...');
     await dataSource.query('TRUNCATE TABLE "user", "collection", "category", "shipping_method" CASCADE');
     console.log('   âœ“ Tables cleared');
 
-    // â”€â”€ Users â”€â”€
-    console.log('ðŸ‘¤ Seeding users...');
+    //
+    console.log('🧹 Seeding users...');
     const userRepo = dataSource.getRepository(User);
 
     const admin = await userRepo.save(userRepo.create({
@@ -85,13 +85,13 @@ async function seed() {
         isActive: false,
     }));
 
-    console.log(`   âœ“ admin   (id: ${admin.id})`);
-    console.log(`   âœ“ alice   (id: ${alice.id})`);
-    console.log(`   âœ“ bob     (id: ${bob.id})`);
-    console.log(`   âœ“ charlie (id: ${charlie.id}, inactive)`);
+    console.log(`   ✓ admin   (id: ${admin.id})`);
+    console.log(`   ✓ alice   (id: ${alice.id})`);
+    console.log(`   ✓ bob     (id: ${bob.id})`);
+    console.log(`   ✓ charlie (id: ${charlie.id}, inactive)`);
 
-    // â”€â”€ Collections â”€â”€
-    console.log('ðŸ—‚ï¸  Seeding collections...');
+    // --- Collections --- 
+    console.log('🪄  Seeding collections...');
     const collRepo = dataSource.getRepository(Collection);
 
     const winter2025 = await collRepo.save(collRepo.create({
@@ -109,8 +109,8 @@ async function seed() {
     console.log(`   âœ“ ${winter2025.slug}`);
     console.log(`   âœ“ ${summer2025.slug}`);
 
-    // â”€â”€ Categories + SubCategories â”€â”€
-    console.log('ðŸ“‚ Seeding categories...');
+    // --- Categories + SubCategories ---
+    console.log('📁 Seeding categories...');
     const catRepo = dataSource.getRepository(Category);
     const subRepo = dataSource.getRepository(SubCategory);
 
@@ -118,14 +118,14 @@ async function seed() {
     const tops = await catRepo.save(catRepo.create({ slug: 'tops', displayName: 'Tops' }));
 
     const caps = await subRepo.save(subRepo.create({ slug: 'caps', displayName: 'Caps', category: headwear, categoryId: headwear.id }));
-    await subRepo.save(subRepo.create({ slug: 'beanies', displayName: 'Beanies', category: headwear, categoryId: headwear.id }));
+    const beanies = await subRepo.save(subRepo.create({ slug: 'beanies', displayName: 'Beanies', category: headwear, categoryId: headwear.id }));
     const tshirts = await subRepo.save(subRepo.create({ slug: 't-shirts', displayName: 'T-Shirts', category: tops, categoryId: tops.id }));
     const hoodies = await subRepo.save(subRepo.create({ slug: 'hoodies', displayName: 'Hoodies', category: tops, categoryId: tops.id }));
 
     console.log('   âœ“ headwear â†’ caps, beanies');
     console.log('   âœ“ tops â†’ t-shirts, hoodies');
 
-    // â”€â”€ Shipping Methods â”€â”€
+    // --- Shipping Methods ---
     console.log('ðŸšš Seeding shipping methods...');
     const shipRepo = dataSource.getRepository(ShippingMethod);
 
@@ -150,17 +150,17 @@ async function seed() {
         estimatedDays: 10,
         isActive: false,
     }));
-    console.log('   âœ“ Standard Shipping ($4.99, 7 days)');
-    console.log('   âœ“ Express Shipping ($12.99, 2 days)');
-    console.log('   âœ“ Free Shipping ($0.00, inactive)');
+    console.log('   🚢 Standard Shipping ($4.99, 7 days)');
+    console.log('   🚢 Express Shipping ($12.99, 2 days)');
+    console.log('   🚢 Free Shipping ($0.00, inactive)');
 
-    // â”€â”€ Products â”€â”€
+    // --- Products ---
     console.log('ðŸ‘• Seeding products...');
     const productRepo = dataSource.getRepository(Product);
     const variantRepo = dataSource.getRepository(ProductVariant);
     const photoRepo = dataSource.getRepository(ProductPhoto);
 
-    // â”€â”€ Product 1: Black Wool Cap â”€â”€
+    // --- Product 1: Black Wool Cap ---
     const cap = await productRepo.save(productRepo.create({
         name: 'black_wool_cap',
         displayName: 'Black Wool Cap',
@@ -230,7 +230,7 @@ async function seed() {
     await productRepo.update(cap.id, { defaultVariantId: capVarBlack.id, primaryPhotoId: capPhoto1.id });
     console.log('   âœ“ black_wool_cap (2 variants, 2 photos)');
 
-    // â”€â”€ Product 2: Classic White Tee â”€â”€
+    // --- Product 2: Classic White Tee ---
     const tee = await productRepo.save(productRepo.create({
         name: 'classic_white_tee',
         displayName: 'Classic White Tee',
@@ -331,7 +331,7 @@ async function seed() {
     await productRepo.update(tee.id, { defaultVariantId: teeVarWhiteM.id, primaryPhotoId: teePhoto1.id });
     console.log('   âœ“ classic_white_tee (4 variants, 2 photos)');
 
-    // â”€â”€ Product 3: Oversized Hoodie â”€â”€
+    // --- Product 3: Oversized Hoodie ---
     const hoodie = await productRepo.save(productRepo.create({
         name: 'oversized_hoodie',
         displayName: 'Oversized Hoodie',
@@ -432,7 +432,7 @@ async function seed() {
     await productRepo.update(hoodie.id, { defaultVariantId: hoodieVarGreyM.id, primaryPhotoId: hoodiePhoto1.id });
     console.log('   âœ“ oversized_hoodie (4 variants, 2 photos)');
 
-    // â”€â”€ Reviews â”€â”€
+    // --- Reviews ---
     console.log('â­ Seeding reviews...');
     const reviewRepo = dataSource.getRepository(Review);
 
@@ -466,7 +466,7 @@ async function seed() {
     ]);
     console.log('   âœ“ oversized_hoodie â€” 3 APPROVED (avg 8.0), 1 PENDING, 1 REJECTED');
 
-    // â”€â”€ Orders â”€â”€
+    // --- Orders ---
     console.log('ðŸ“¦ Seeding orders...');
     const orderRepo = dataSource.getRepository(Order);
     const itemRepo = dataSource.getRepository(OrderItem);
@@ -549,7 +549,7 @@ async function seed() {
     );
     console.log(`   âœ“ O2SHOP-000003 â€” guest@example.com, PAID+UNFULFILLED (tee Black/S Ã—2)`);
 
-    // â”€â”€ Saved Addresses â”€â”€
+    // --- Saved Addresses ---
     console.log('ðŸ  Seeding saved addresses...');
     const savedAddrRepo = dataSource.getRepository(SavedAddress);
 
