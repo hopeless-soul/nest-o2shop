@@ -65,6 +65,7 @@ export class ProductsService {
       .leftJoinAndSelect('product.variants', 'variants')
       .leftJoinAndSelect('variants.featuredImage', 'variantPhoto')
       .leftJoinAndSelect('product.primaryPhoto', 'primaryPhoto')
+      .leftJoinAndSelect('product.photos', 'photos')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.subCategory', 'subCategory')
       .leftJoinAndSelect('product.collection', 'collection');

@@ -8,6 +8,7 @@ import { User } from './entities/user.entity';
 import { DataSource, EntityManager, FindOneOptions, Repository } from 'typeorm';
 import { CreateOAuthUserDto } from './dto/create-oauth-user.dto';
 import { CreateLocalUserDto } from './dto/create-local-user.dto';
+import { CreateAdminUserDto } from './dto/create-admin-user.dto';
 import { HashingService } from '../common/hashing/hashing.service';
 import { toCurrentUserData } from '../auth/types';
 import { FilterUsersQueryDto } from './dto/filter-users-query.dto';
@@ -50,6 +51,39 @@ export class UsersService {
         const pgUniqueViolationCode = '23505';
         if (error?.code === pgUniqueViolationCode) {
           throw new ConflictException('Email or username already exists');
+        }
+        throw error;
+      }
+    });
+  }
+
+  createFromAdmin(dto: CreateAdminUserDto) {
+    return this.dataSource.transaction(async (manager) => {
+      const userRepo = manager.getRepository(User);
+      const { email, password, displayName, avatarUrl, role, isActive } = dto;
+
+      const exists = await userRepo.findOne({ where: { email } });
+      if (exists) {
+        throw new ConflictException('User with this email already exists');
+      }
+
+      const hashedPassword = await this.hashingService.hash(password);
+      const user = userRepo.create({
+        email,
+        password: hashedPassword,
+        ...(displayName !== undefined && { displayName }),
+        ...(avatarUrl !== undefined && { avatarUrl }),
+        ...(role !== undefined && { role }),
+        ...(isActive !== undefined && { isActive }),
+      });
+
+      try {
+        const saved = await userRepo.save(user);
+        await this.linkGuestData(saved.id, saved.email, manager);
+        return saved;
+      } catch (error: any) {
+        if (error?.code === '23505') {
+          throw new ConflictException('Email already exists');
         }
         throw error;
       }

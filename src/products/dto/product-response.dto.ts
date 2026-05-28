@@ -210,6 +210,11 @@ export class ProductListItemResponseDto {
   @Type(() => ProductPhotoSummaryDto)
   primaryPhoto: ProductPhotoSummaryDto | null;
 
+  @ApiProperty({ type: () => ProductPhotoResponseDto, isArray: true })
+  @Expose()
+  @Type(() => ProductPhotoResponseDto)
+  photos: ProductPhotoResponseDto[];
+
   @ApiPropertyOptional({ type: () => ProductVariantResponseDto })
   @Expose()
   @Type(() => ProductVariantResponseDto)

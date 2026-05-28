@@ -187,6 +187,60 @@
       }
     },
     "/admin/users": {
+      "post": {
+        "operationId": "AdminUsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAdminUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "409": {
+            "description": "Email already in use"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Create a new user (admin)",
+        "tags": [
+          "Admin – Users"
+        ]
+      },
       "get": {
         "operationId": "AdminUsersController_findAll",
         "parameters": [
@@ -3699,6 +3753,46 @@
           "error"
         ]
       },
+      "CreateAdminUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "example": "strongP@ss1",
+            "minLength": 8
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://example.com/avatar.jpg"
+          },
+          "role": {
+            "default": "regular",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
       "AdminUserResponseDto": {
         "type": "object",
         "properties": {
@@ -4214,28 +4308,6 @@
           "url"
         ]
       },
-      "QuantityRuleResponseDto": {
-        "type": "object",
-        "properties": {
-          "min": {
-            "type": "number",
-            "example": 1
-          },
-          "max": {
-            "type": "object",
-            "example": null,
-            "nullable": true
-          },
-          "increment": {
-            "type": "number",
-            "example": 1
-          }
-        },
-        "required": [
-          "min",
-          "increment"
-        ]
-      },
       "ProductPhotoResponseDto": {
         "type": "object",
         "properties": {
@@ -4282,6 +4354,28 @@
           "id",
           "url",
           "sortOrder"
+        ]
+      },
+      "QuantityRuleResponseDto": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "number",
+            "example": 1
+          },
+          "max": {
+            "type": "object",
+            "example": null,
+            "nullable": true
+          },
+          "increment": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "min",
+          "increment"
         ]
       },
       "ProductVariantResponseDto": {
@@ -4495,6 +4589,12 @@
               }
             ]
           },
+          "photos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductPhotoResponseDto"
+            }
+          },
           "defaultVariant": {
             "$ref": "#/components/schemas/ProductVariantResponseDto"
           },
@@ -4529,6 +4629,7 @@
           "priceMin",
           "priceMax",
           "priceVaries",
+          "photos",
           "variants",
           "category",
           "subCategory"

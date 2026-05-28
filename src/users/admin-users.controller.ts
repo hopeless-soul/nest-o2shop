@@ -8,6 +8,7 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  Post,
   Query,
 } from '@nestjs/common';
 import {
@@ -15,8 +16,10 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiOkResponse,
+  ApiCreatedResponse,
   ApiNoContentResponse,
   ApiBadRequestResponse,
+  ApiConflictResponse,
   ApiUnauthorizedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
@@ -27,6 +30,7 @@ import { plainToInstance } from 'class-transformer';
 import { UsersService } from './users.service';
 import { FilterUsersQueryDto } from './dto/filter-users-query.dto';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
+import { CreateAdminUserDto } from './dto/create-admin-user.dto';
 import { AdminUserResponseDto } from './dto/user-response.dto';
 import {
   PaginatedResponseDto,
@@ -47,6 +51,20 @@ import { Role } from './enums/role.enum';
 @Roles(Role.ADMIN)
 export class AdminUsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @ApiOperation({ summary: 'Create a new user (admin)' })
+  @ApiBody({ type: CreateAdminUserDto })
+  @ApiCreatedResponse({ type: AdminUserResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto, description: 'Validation error' })
+  @ApiConflictResponse({ description: 'Email already in use' })
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async create(@Body() dto: CreateAdminUserDto): Promise<AdminUserResponseDto> {
+    const user = await this.usersService.createFromAdmin(dto);
+    return plainToInstance(AdminUserResponseDto, user, {
+      excludeExtraneousValues: true,
+    });
+  }
 
   @ApiOperation({ summary: 'List all users with filters' })
   @ApiOkResponse({ type: PaginatedDto(AdminUserResponseDto) })
