@@ -40,11 +40,11 @@ export class Product {
   @ManyToOne(() => Category, { onDelete: 'RESTRICT' })
   category: Category;
 
-  @Column()
-  subCategoryId: string;
+  @Column({ nullable: true })
+  subCategoryId?: string | null;
 
-  @ManyToOne(() => SubCategory, {  onDelete: 'RESTRICT' })
-  subCategory: SubCategory;
+  @ManyToOne(() => SubCategory, { nullable: true, onDelete: 'SET NULL' })
+  subCategory?: SubCategory | null;
 
   // Note: the type is currently being used as main tag
   @Column({ nullable: true, default: null })
