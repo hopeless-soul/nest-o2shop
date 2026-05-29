@@ -73,22 +73,12 @@ export class CreateVariantDto {
   @Min(0)
   weight?: number;
 
-  @ApiPropertyOptional({ enum: ['deny', 'continue'], example: 'deny' })
-  @IsOptional()
-  @IsIn(['deny', 'continue'])
-  inventoryPolicy?: 'deny' | 'continue';
-
   @ApiPropertyOptional({ type: () => QuantityRuleDto })
   @IsOptional()
   @IsObject()
   @ValidateNested()
   @Type(() => QuantityRuleDto)
   quantityRule?: QuantityRuleDto;
-
-  @ApiPropertyOptional({ example: '9781234567897', nullable: true })
-  @IsOptional()
-  @IsString()
-  barcode?: string;
 
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()

@@ -42,7 +42,7 @@ import { UpdatePhotoDto } from './dto/update-photo.dto';
 import { ReorderPhotosDto } from './dto/reorder-photos.dto';
 import { AdminFilterProductsQueryDto } from './dto/admin-filter-products-query.dto';
 import { FilterReviewsQueryDto } from '../reviews/dto/filter-reviews-query.dto';
-import { AdminProductResponseDto, ProductListItemResponseDto } from './dto/product-response.dto';
+import { AdminProductResponseDto, AdminProductListItemResponseDto, PaginatedAdminProductListItemResponseDto } from './dto/product-response.dto';
 import { ProductVariantResponseDto } from './dto/product-variant-response.dto';
 import { ProductPhotoResponseDto } from './dto/product-photo-response.dto';
 import { AdminReviewResponseDto } from '../reviews/dto/review-response.dto';
@@ -80,15 +80,15 @@ export class AdminProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @ApiOperation({ summary: 'List all products (with admin-only filters)' })
-  @ApiOkResponse({ type: PaginatedDto(ProductListItemResponseDto) })
+  @ApiOkResponse({ type: PaginatedAdminProductListItemResponseDto })
   @Get()
   async findAll(
     @Query() query: AdminFilterProductsQueryDto,
-  ): Promise<PaginatedResponseDto<ProductListItemResponseDto>> {
+  ): Promise<PaginatedAdminProductListItemResponseDto> {
     const result = await this.productsService.findAll(query, true);
     return {
       data: result.data.map((p) =>
-        plainToInstance(ProductListItemResponseDto, p, {
+        plainToInstance(AdminProductListItemResponseDto, p, {
           excludeExtraneousValues: true,
         }),
       ),

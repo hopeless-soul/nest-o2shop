@@ -3,6 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProductPhotoResponseDto } from './product-photo-response.dto';
 import { ProductVariantResponseDto } from './product-variant-response.dto';
 import type { ProductDescription } from '../types/description-block.type';
+import { PaginatedDto } from '../../common/dto/paginated-response.dto';
 
 export class ProductPhotoSummaryDto {
   @ApiProperty({ format: 'uuid' }) @Expose() id: string;
@@ -244,3 +245,23 @@ export class ProductListItemResponseDto {
   @Expose()
   type?: string;
 }
+
+export class AdminProductListItemResponseDto extends ProductListItemResponseDto {
+  @ApiProperty({ example: true })
+  @Expose()
+  isPublished: boolean;
+
+  @ApiProperty()
+  @Expose()
+  createdAt: Date;
+
+  @ApiPropertyOptional({ nullable: true, example: null })
+  @Expose()
+  deletedAt: Date | null;
+
+  @ApiProperty()
+  @Expose()
+  updatedAt: Date;
+}
+
+export class PaginatedAdminProductListItemResponseDto extends PaginatedDto(AdminProductListItemResponseDto) {}

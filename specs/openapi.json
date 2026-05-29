@@ -1746,7 +1746,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginatedProductListItemResponseDto"
+                  "$ref": "#/components/schemas/PaginatedAdminProductListItemResponseDto"
                 }
               }
             }
@@ -4866,21 +4866,8 @@
             "nullable": true,
             "description": "Weight in grams"
           },
-          "inventoryPolicy": {
-            "type": "string",
-            "example": "deny",
-            "enum": [
-              "deny",
-              "continue"
-            ]
-          },
           "quantityRule": {
             "$ref": "#/components/schemas/QuantityRuleResponseDto"
-          },
-          "barcode": {
-            "type": "object",
-            "example": "9781234567897",
-            "nullable": true
           },
           "featuredImageId": {
             "type": "string",
@@ -4899,7 +4886,6 @@
           "sku",
           "stock",
           "available",
-          "inventoryPolicy",
           "quantityRule"
         ]
       },
@@ -5316,6 +5302,159 @@
           "variants",
           "category",
           "subCategory"
+        ]
+      },
+      "AdminProductListItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "blue_widget"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Blue Widget"
+          },
+          "basePrice": {
+            "type": "number",
+            "example": 29.99
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "available": {
+            "type": "boolean",
+            "example": true
+          },
+          "priceMin": {
+            "type": "number",
+            "example": 29.99
+          },
+          "priceMax": {
+            "type": "number",
+            "example": 49.99
+          },
+          "priceVaries": {
+            "type": "boolean",
+            "example": false
+          },
+          "compareAtPrice": {
+            "type": "object",
+            "example": 34.99,
+            "nullable": true
+          },
+          "rating": {
+            "type": "object",
+            "nullable": true,
+            "example": 4.5
+          },
+          "primaryPhoto": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
+              }
+            ]
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductPhotoResponseDto"
+            }
+          },
+          "defaultVariant": {
+            "$ref": "#/components/schemas/ProductVariantResponseDto"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductVariantResponseDto"
+            }
+          },
+          "collection": {
+            "$ref": "#/components/schemas/CollectionSummaryDto"
+          },
+          "category": {
+            "$ref": "#/components/schemas/CategorySummaryDto"
+          },
+          "subCategory": {
+            "$ref": "#/components/schemas/SubCategorySummaryDto"
+          },
+          "type": {
+            "type": "string",
+            "nullable": true,
+            "example": "Ushanka"
+          },
+          "isPublished": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "deletedAt": {
+            "type": "object",
+            "nullable": true,
+            "example": null
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "displayName",
+          "basePrice",
+          "currency",
+          "available",
+          "priceMin",
+          "priceMax",
+          "priceVaries",
+          "photos",
+          "variants",
+          "category",
+          "subCategory",
+          "isPublished",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedAdminProductListItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminProductListItemResponseDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "data"
         ]
       },
       "AdminProductResponseDto": {
@@ -5842,21 +5981,8 @@
             "example": 450,
             "description": "Weight in grams"
           },
-          "inventoryPolicy": {
-            "type": "string",
-            "enum": [
-              "deny",
-              "continue"
-            ],
-            "example": "deny"
-          },
           "quantityRule": {
             "$ref": "#/components/schemas/QuantityRuleDto"
-          },
-          "barcode": {
-            "type": "string",
-            "example": "9781234567897",
-            "nullable": true
           },
           "featuredImageId": {
             "type": "string",
@@ -5911,21 +6037,8 @@
             "example": 450,
             "description": "Weight in grams"
           },
-          "inventoryPolicy": {
-            "type": "string",
-            "enum": [
-              "deny",
-              "continue"
-            ],
-            "example": "deny"
-          },
           "quantityRule": {
             "$ref": "#/components/schemas/QuantityRuleDto"
-          },
-          "barcode": {
-            "type": "string",
-            "example": "9781234567897",
-            "nullable": true
           },
           "featuredImageId": {
             "type": "string",

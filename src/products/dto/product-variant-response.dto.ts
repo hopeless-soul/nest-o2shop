@@ -53,18 +53,10 @@ export class ProductVariantResponseDto {
   @Expose()
   weight?: number | null;
 
-  @ApiProperty({ example: 'deny', enum: ['deny', 'continue'] })
-  @Expose()
-  inventoryPolicy: string;
-
   @ApiProperty({ type: () => QuantityRuleResponseDto })
   @Expose()
   @Type(() => QuantityRuleResponseDto)
   quantityRule: QuantityRuleResponseDto;
-
-  @ApiPropertyOptional({ example: '9781234567897', nullable: true })
-  @Expose()
-  barcode?: string | null;
 
   @ApiPropertyOptional({ format: 'uuid' })
   @Expose()

@@ -59,17 +59,12 @@ export class ProductVariant {
   @Column({ type: 'int', nullable: true })
   weight?: number | null;
 
-  @Column({ default: 'deny' })
-  inventoryPolicy: 'deny' | 'continue';
-
+  // Note: What is this for?
   @Column({
     type: 'jsonb',
     default: () => `'{"min":1,"max":null,"increment":1}'`,
   })
   quantityRule: { min: number; max: number | null; increment: number };
-
-  @Column({ type: 'varchar', nullable: true })
-  barcode?: string | null;
 
   @Column({ name: 'mainPhotoId', nullable: true })
   featuredImageId?: string;
