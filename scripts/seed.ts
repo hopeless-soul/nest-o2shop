@@ -1,6 +1,8 @@
-﻿// scripts/seed.ts
+// scripts/seed.ts
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import * as fsPromises from 'fs/promises';
+import * as path from 'path';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 (require('dotenv') as { config: () => void }).config();
 import { User } from '../src/users/entities/user.entity';
@@ -21,10 +23,35 @@ import { FulfillmentStatus } from '../src/orders/enums/fulfillment-status.enum';
 import { SavedAddress } from '../src/addresses/entities/saved-address.entity';
 import { RefreshToken } from '../src/auth/entities/refresh-token.entity';
 
+const ASSETS_ROOT = path.join(process.cwd(), 'scripts', 'seed-assets', 'products');
+const UPLOADS_ROOT = path.join(process.cwd(), 'uploads', 'products');
+
 function generateSku(productName: string, colorName: string, size: string): string {
     return [productName, colorName, size]
         .map(s => s.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''))
         .join('-');
+}
+
+async function copyProductPhotos(
+    folderName: string,
+    productSlug: string,
+): Promise<Array<{ filename: string; sortOrder: number }>> {
+    const srcDir = path.join(ASSETS_ROOT, folderName);
+    const destDir = path.join(UPLOADS_ROOT, productSlug);
+    await fsPromises.mkdir(destDir, { recursive: true });
+
+    const entries = await fsPromises.readdir(srcDir);
+    const result: Array<{ filename: string; sortOrder: number }> = [];
+
+    for (const filename of entries) {
+        if (filename === 'info.txt') continue;
+        const n = parseInt(path.basename(filename, path.extname(filename)), 10);
+        if (isNaN(n)) continue;
+        await fsPromises.copyFile(path.join(srcDir, filename), path.join(destDir, filename));
+        result.push({ filename, sortOrder: n });
+    }
+
+    return result.sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
 const dataSource = new DataSource({
@@ -47,13 +74,12 @@ async function seed() {
     await dataSource.initialize();
     console.log('✅ Connected to database');
 
-    //
-    console.log('ðŸ§¹ Clearing existing data...');
+    console.log('🧹 Clearing existing data...');
     await dataSource.query('TRUNCATE TABLE "user", "collection", "category", "shipping_method" CASCADE');
-    console.log('   âœ“ Tables cleared');
+    console.log('   ✓ Tables cleared');
 
-    //
-    console.log('🧹 Seeding users...');
+    // --- Users ---
+    console.log('👤 Seeding users...');
     const userRepo = dataSource.getRepository(User);
 
     const admin = await userRepo.save(userRepo.create({
@@ -90,7 +116,7 @@ async function seed() {
     console.log(`   ✓ bob     (id: ${bob.id})`);
     console.log(`   ✓ charlie (id: ${charlie.id}, inactive)`);
 
-    // --- Collections --- 
+    // --- Collections ---
     console.log('🪄  Seeding collections...');
     const collRepo = dataSource.getRepository(Collection);
 
@@ -106,27 +132,26 @@ async function seed() {
         description: 'Light and breathable styles for the warmer months.',
         isActive: true,
     }));
-    console.log(`   âœ“ ${winter2025.slug}`);
-    console.log(`   âœ“ ${summer2025.slug}`);
+    console.log(`   ✓ ${winter2025.slug}`);
+    console.log(`   ✓ ${summer2025.slug}`);
 
     // --- Categories + SubCategories ---
     console.log('📁 Seeding categories...');
     const catRepo = dataSource.getRepository(Category);
     const subRepo = dataSource.getRepository(SubCategory);
 
-    const headwear = await catRepo.save(catRepo.create({ slug: 'headwear', displayName: 'Headwear' }));
     const tops = await catRepo.save(catRepo.create({ slug: 'tops', displayName: 'Tops' }));
+    const bottoms = await catRepo.save(catRepo.create({ slug: 'bottoms', displayName: 'Bottoms' }));
 
-    const caps = await subRepo.save(subRepo.create({ slug: 'caps', displayName: 'Caps', category: headwear, categoryId: headwear.id }));
-    const beanies = await subRepo.save(subRepo.create({ slug: 'beanies', displayName: 'Beanies', category: headwear, categoryId: headwear.id }));
-    const tshirts = await subRepo.save(subRepo.create({ slug: 't-shirts', displayName: 'T-Shirts', category: tops, categoryId: tops.id }));
-    const hoodies = await subRepo.save(subRepo.create({ slug: 'hoodies', displayName: 'Hoodies', category: tops, categoryId: tops.id }));
+    const subcatTees = await subRepo.save(subRepo.create({ slug: 'tees', displayName: 'Tees', category: tops, categoryId: tops.id }));
+    const subcatJumpers = await subRepo.save(subRepo.create({ slug: 'jumpers', displayName: 'Jumpers', category: tops, categoryId: tops.id }));
+    const subcatPants = await subRepo.save(subRepo.create({ slug: 'pants', displayName: 'Pants', category: bottoms, categoryId: bottoms.id }));
 
-    console.log('   âœ“ headwear â†’ caps, beanies');
-    console.log('   âœ“ tops â†’ t-shirts, hoodies');
+    console.log('   ✓ tops → tees, jumpers');
+    console.log('   ✓ bottoms → pants');
 
     // --- Shipping Methods ---
-    console.log('ðŸšš Seeding shipping methods...');
+    console.log('🚚 Seeding shipping methods...');
     const shipRepo = dataSource.getRepository(ShippingMethod);
 
     const standardShipping = await shipRepo.save(shipRepo.create({
@@ -150,188 +175,20 @@ async function seed() {
         estimatedDays: 10,
         isActive: false,
     }));
-    console.log('   🚢 Standard Shipping ($4.99, 7 days)');
-    console.log('   🚢 Express Shipping ($12.99, 2 days)');
-    console.log('   🚢 Free Shipping ($0.00, inactive)');
+    console.log('   ✓ Standard Shipping ($4.99, 7 days)');
+    console.log('   ✓ Express Shipping ($12.99, 2 days)');
+    console.log('   ✓ Free Shipping ($0.00, inactive)');
 
     // --- Products ---
-    console.log('ðŸ‘• Seeding products...');
+    console.log('👕 Seeding products...');
+    console.log('📸 Copying product photos...');
+    await fsPromises.rm(UPLOADS_ROOT, { recursive: true, force: true });
+
     const productRepo = dataSource.getRepository(Product);
     const variantRepo = dataSource.getRepository(ProductVariant);
     const photoRepo = dataSource.getRepository(ProductPhoto);
 
-    // --- Product 1: Black Wool Cap ---
-    const cap = await productRepo.save(productRepo.create({
-        name: 'black_wool_cap',
-        displayName: 'Black Wool Cap',
-        collection: winter2025,
-        collectionId: winter2025.id,
-        category: headwear,
-        categoryId: headwear.id,
-        subCategory: caps,
-        subCategoryId: caps.id,
-        basePrice: 29.99,
-        compareAtPrice: 34.99,
-        currency: 'USD',
-        tags: ['winter', 'headwear', 'wool', 'new-arrival'],
-        description: {
-            blocks: [
-                { type: 'text', content: 'A classic wool cap for the colder months. Structured brim, adjustable back strap.' },
-                { type: 'points', items: ['100% Wool', 'One size fits most', 'Adjustable strap'] },
-            ],
-        },
-        isPublished: true,
-    }));
-    const capPhoto1 = await photoRepo.save(photoRepo.create({
-        productId: cap.id,
-        product: cap,
-        url: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800',
-        altText: 'Black Wool Cap front view',
-        sortOrder: 0,
-    }));
-    const capPhoto2 = await photoRepo.save(photoRepo.create({
-        productId: cap.id,
-        product: cap,
-        url: 'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?w=800',
-        altText: 'Black Wool Cap side view',
-        sortOrder: 1,
-    }));
-    const capVarBlack = await variantRepo.save(variantRepo.create({
-        product: cap,
-        productId: cap.id,
-        colorName: 'Black',
-        colorValue: '#1a1a1a',
-        size: 'One Size',
-        sku: generateSku('black_wool_cap', 'Black', 'One Size'),
-        stock: 50,
-        compareAtPrice: 34.99,
-        weight: 180,
-        inventoryPolicy: 'deny' as const,
-        quantityRule: { min: 1, max: null, increment: 1 },
-        barcode: '5901234123457',
-        featuredImage: capPhoto1,
-        featuredImageId: capPhoto1.id,
-    }));
-    await variantRepo.save(variantRepo.create({
-        product: cap,
-        productId: cap.id,
-        colorName: 'Navy',
-        colorValue: '#1a2744',
-        size: 'One Size',
-        sku: generateSku('black_wool_cap', 'Navy', 'One Size'),
-        stock: 30,
-        weight: 180,
-        inventoryPolicy: 'deny' as const,
-        quantityRule: { min: 1, max: null, increment: 1 },
-        barcode: '5901234123464',
-        featuredImage: capPhoto2,
-        featuredImageId: capPhoto2.id,
-    }));
-    await productRepo.update(cap.id, { defaultVariantId: capVarBlack.id, primaryPhotoId: capPhoto1.id });
-    console.log('   âœ“ black_wool_cap (2 variants, 2 photos)');
-
-    // --- Product 2: Classic White Tee ---
-    const tee = await productRepo.save(productRepo.create({
-        name: 'classic_white_tee',
-        displayName: 'Classic White Tee',
-        collection: summer2025,
-        collectionId: summer2025.id,
-        category: tops,
-        categoryId: tops.id,
-        subCategory: tshirts,
-        subCategoryId: tshirts.id,
-        basePrice: 24.99,
-        compareAtPrice: 29.99,
-        currency: 'USD',
-        tags: ['summer', 'basics', 'cotton', 'sale'],
-        description: {
-            blocks: [
-                { type: 'text', content: 'A wardrobe essential. Relaxed fit, breathable cotton.' },
-                { type: 'points', items: ['100% Organic Cotton', 'Pre-washed to minimise shrink', 'Unisex cut'] },
-            ],
-        },
-        isPublished: true,
-    }));
-    const teePhoto1 = await photoRepo.save(photoRepo.create({
-        productId: tee.id,
-        product: tee,
-        url: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800',
-        altText: 'Classic White Tee front',
-        sortOrder: 0,
-    }));
-    await photoRepo.save(photoRepo.create({
-        productId: tee.id,
-        product: tee,
-        url: 'https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=800',
-        altText: 'Classic White Tee folded',
-        sortOrder: 1,
-    }));
-    await variantRepo.save(variantRepo.create({
-        product: tee,
-        productId: tee.id,
-        colorName: 'White',
-        colorValue: '#ffffff',
-        size: 'S',
-        sku: generateSku('classic_white_tee', 'White', 'S'),
-        stock: 20,
-        compareAtPrice: 29.99,
-        weight: 220,
-        inventoryPolicy: 'deny' as const,
-        quantityRule: { min: 1, max: 5, increment: 1 },
-        barcode: '5901234123471',
-        featuredImage: teePhoto1,
-        featuredImageId: teePhoto1.id,
-    }));
-    const teeVarWhiteM = await variantRepo.save(variantRepo.create({
-        product: tee,
-        productId: tee.id,
-        colorName: 'White',
-        colorValue: '#ffffff',
-        size: 'M',
-        sku: generateSku('classic_white_tee', 'White', 'M'),
-        stock: 35,
-        compareAtPrice: 29.99,
-        weight: 240,
-        inventoryPolicy: 'deny' as const,
-        quantityRule: { min: 1, max: 5, increment: 1 },
-        barcode: '5901234123488',
-        featuredImage: teePhoto1,
-        featuredImageId: teePhoto1.id,
-    }));
-    const teeVarBlackS = await variantRepo.save(variantRepo.create({
-        product: tee,
-        productId: tee.id,
-        colorName: 'Black',
-        colorValue: '#1a1a1a',
-        size: 'S',
-        sku: generateSku('classic_white_tee', 'Black', 'S'),
-        stock: 15,
-        weight: 220,
-        inventoryPolicy: 'deny' as const,
-        quantityRule: { min: 1, max: null, increment: 1 },
-        barcode: '5901234123495',
-        featuredImage: teePhoto1,
-        featuredImageId: teePhoto1.id,
-    }));
-    await variantRepo.save(variantRepo.create({
-        product: tee,
-        productId: tee.id,
-        colorName: 'Black',
-        colorValue: '#1a1a1a',
-        size: 'M',
-        sku: generateSku('classic_white_tee', 'Black', 'M'),
-        stock: 25,
-        weight: 240,
-        inventoryPolicy: 'deny' as const,
-        quantityRule: { min: 1, max: null, increment: 1 },
-        barcode: '5901234123501',
-        featuredImage: teePhoto1,
-        featuredImageId: teePhoto1.id,
-    }));
-    await productRepo.update(tee.id, { defaultVariantId: teeVarWhiteM.id, primaryPhotoId: teePhoto1.id });
-    console.log('   âœ“ classic_white_tee (4 variants, 2 photos)');
-
-    // --- Product 3: Oversized Hoodie ---
+    // --- Product 1: Oversized Hoodie ---
     const hoodie = await productRepo.save(productRepo.create({
         name: 'oversized_hoodie',
         displayName: 'Oversized Hoodie',
@@ -339,135 +196,252 @@ async function seed() {
         collectionId: winter2025.id,
         category: tops,
         categoryId: tops.id,
-        subCategory: hoodies,
-        subCategoryId: hoodies.id,
-        basePrice: 59.99,
-        compareAtPrice: 74.99,
+        subCategory: subcatJumpers,
+        subCategoryId: subcatJumpers.id,
+        type: 'Your last hoodie',
+        basePrice: 86.00,
         currency: 'USD',
-        tags: ['winter', 'tops', 'fleece', 'oversized'],
+        tags: ['winter', 'tops', 'jumper', 'hoodie', 'embroidered'],
         description: {
             blocks: [
-                { type: 'text', content: 'Heavyweight fleece hoodie with a relaxed, oversized silhouette.' },
-                { type: 'points', items: ['380gsm fleece', 'Kangaroo pocket', 'Brushed interior for warmth'] },
+                { type: 'text', content: "A Friend 'Til the End" },
+                { type: 'points', items: ['Overlap Pullover Hooded Jumper', 'All Over Embroidered Graphics'] },
             ],
         },
         isPublished: true,
     }));
-    const hoodiePhoto1 = await photoRepo.save(photoRepo.create({
-        productId: hoodie.id,
-        product: hoodie,
-        url: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=800',
-        altText: 'Oversized Hoodie grey front',
-        sortOrder: 0,
+
+    const hoodieFiles = await copyProductPhotos('hoodie', 'oversized_hoodie');
+    const hoodiePhotos = await Promise.all(
+        hoodieFiles.map(({ filename, sortOrder }) =>
+            photoRepo.save(photoRepo.create({
+                productId: hoodie.id,
+                product: hoodie,
+                url: `/uploads/products/oversized_hoodie/${filename}`,
+                altText: `Oversized Hoodie — view ${sortOrder}`,
+                sortOrder,
+            })),
+        ),
+    );
+    const hoodiePrimary = hoodiePhotos.find(p => p.sortOrder === -1)!;
+    const hoodieMain = hoodiePhotos.find(p => p.sortOrder === 1)!;
+
+    // xs, s → unavailable (stock 0); m through 3xl → in stock
+    const hoodieVariantDefs: Array<{ size: string; stock: number }> = [
+        { size: 'XS',  stock: 0  },
+        { size: 'S',   stock: 0  },
+        { size: 'M',   stock: 12 },
+        { size: 'L',   stock: 18 },
+        { size: 'XL',  stock: 15 },
+        { size: '2XL', stock: 10 },
+        { size: '3XL', stock: 8  },
+    ];
+    const hoodieVariants = await Promise.all(
+        hoodieVariantDefs.map(({ size, stock }) =>
+            variantRepo.save(variantRepo.create({
+                product: hoodie,
+                productId: hoodie.id,
+                colorName: 'Black',
+                colorValue: '#000000',
+                size,
+                sku: generateSku('oversized_hoodie', 'Black', size),
+                stock,
+                weight: 650,
+                inventoryPolicy: 'deny' as const,
+                quantityRule: { min: 1, max: null, increment: 1 },
+                featuredImage: hoodieMain,
+                featuredImageId: hoodieMain.id,
+            })),
+        ),
+    );
+    const hoodieDefaultVariant = hoodieVariants.find(v => v.stock > 0)!;
+    await productRepo.update(hoodie.id, {
+        defaultVariantId: hoodieDefaultVariant.id,
+        primaryPhotoId: hoodiePrimary.id,
+    });
+    console.log(`   ✓ oversized_hoodie (${hoodieVariants.length} variants, ${hoodiePhotos.length} photos)`);
+
+    // --- Product 2: Heavyweight Tee ---
+    const tee = await productRepo.save(productRepo.create({
+        name: 'heavyweight_tee',
+        displayName: 'Heavyweight Tee',
+        collection: summer2025,
+        collectionId: summer2025.id,
+        category: tops,
+        categoryId: tops.id,
+        subCategory: subcatTees,
+        subCategoryId: subcatTees.id,
+        type: 'T-Shirt',
+        basePrice: 37.00,
+        currency: 'USD',
+        tags: ['tops', 'graphic-tee', 'heavyweight', 'screen-print', 'cotton'],
+        description: {
+            blocks: [
+                { type: 'text', content: 'Everyday I Wake Up In This Prison!' },
+                { type: 'points', items: ['Screen and Puff Printed Front', '100% Heavyweight 300GSM Cotton'] },
+            ],
+        },
+        isPublished: true,
     }));
-    await photoRepo.save(photoRepo.create({
-        productId: hoodie.id,
-        product: hoodie,
-        url: 'https://images.unsplash.com/photo-1509942774463-acf339cf87d5?w=800',
-        altText: 'Oversized Hoodie navy detail',
-        sortOrder: 1,
+
+    const teeFiles = await copyProductPhotos('tees', 'heavyweight_tee');
+    const teePhotos = await Promise.all(
+        teeFiles.map(({ filename, sortOrder }) =>
+            photoRepo.save(photoRepo.create({
+                productId: tee.id,
+                product: tee,
+                url: `/uploads/products/heavyweight_tee/${filename}`,
+                altText: `Heavyweight Tee — view ${sortOrder}`,
+                sortOrder,
+            })),
+        ),
+    );
+    const teePrimary = teePhotos.find(p => p.sortOrder === -1)!;
+    const teeMain = teePhotos.find(p => p.sortOrder === 1)!;
+
+    // s, 3xl → unavailable; rest → in stock
+    const teeVariantDefs: Array<{ size: string; stock: number }> = [
+        { size: 'XS',  stock: 10 },
+        { size: 'S',   stock: 0  },
+        { size: 'M',   stock: 20 },
+        { size: 'L',   stock: 15 },
+        { size: 'XL',  stock: 12 },
+        { size: '2XL', stock: 8  },
+        { size: '3XL', stock: 0  },
+    ];
+    const teeVariants = await Promise.all(
+        teeVariantDefs.map(({ size, stock }) =>
+            variantRepo.save(variantRepo.create({
+                product: tee,
+                productId: tee.id,
+                colorName: 'White',
+                colorValue: '#f5f5f5',
+                size,
+                sku: generateSku('heavyweight_tee', 'White', size),
+                stock,
+                weight: 300,
+                inventoryPolicy: 'deny' as const,
+                quantityRule: { min: 1, max: null, increment: 1 },
+                featuredImage: teeMain,
+                featuredImageId: teeMain.id,
+            })),
+        ),
+    );
+    const teeDefaultVariant = teeVariants.find(v => v.stock > 0)!;
+    await productRepo.update(tee.id, {
+        defaultVariantId: teeDefaultVariant.id,
+        primaryPhotoId: teePrimary.id,
+    });
+    console.log(`   ✓ heavyweight_tee (${teeVariants.length} variants, ${teePhotos.length} photos)`);
+
+    // --- Product 3: Patchwork Denim Pants ---
+    const denim = await productRepo.save(productRepo.create({
+        name: 'patchwork_denim_pants',
+        displayName: 'Patchwork Denim Pants',
+        collection: winter2025,
+        collectionId: winter2025.id,
+        category: bottoms,
+        categoryId: bottoms.id,
+        subCategory: subcatPants,
+        subCategoryId: subcatPants.id,
+        type: 'Denim Jeans',
+        basePrice: 140.00,
+        compareAtPrice: 110.00,
+        currency: 'USD',
+        tags: ['bottoms', 'denim', 'pants', 'distressed', 'patchwork'],
+        description: {
+            blocks: [
+                { type: 'text', content: 'Keep your pants on!' },
+                { type: 'points', items: ['Distressed patchwork denim pants', '300gsm outer layer over 480gsm black inner'] },
+            ],
+        },
+        isPublished: true,
     }));
-    const hoodieVarGreyM = await variantRepo.save(variantRepo.create({
-        product: hoodie,
-        productId: hoodie.id,
-        colorName: 'Grey',
-        colorValue: '#9ca3af',
-        size: 'M',
-        sku: generateSku('oversized_hoodie', 'Grey', 'M'),
-        stock: 10,
-        compareAtPrice: 74.99,
-        weight: 680,
-        inventoryPolicy: 'deny' as const,
-        quantityRule: { min: 1, max: 3, increment: 1 },
-        barcode: '5901234123518',
-        featuredImage: hoodiePhoto1,
-        featuredImageId: hoodiePhoto1.id,
-    }));
-    const hoodieVarGreyL = await variantRepo.save(variantRepo.create({
-        product: hoodie,
-        productId: hoodie.id,
-        colorName: 'Grey',
-        colorValue: '#9ca3af',
-        size: 'L',
-        sku: generateSku('oversized_hoodie', 'Grey', 'L'),
-        stock: 15,
-        compareAtPrice: 74.99,
-        weight: 720,
-        inventoryPolicy: 'deny' as const,
-        quantityRule: { min: 1, max: 3, increment: 1 },
-        barcode: '5901234123525',
-        featuredImage: hoodiePhoto1,
-        featuredImageId: hoodiePhoto1.id,
-    }));
-    await variantRepo.save(variantRepo.create({
-        product: hoodie,
-        productId: hoodie.id,
-        colorName: 'Navy',
-        colorValue: '#1a2744',
-        size: 'M',
-        sku: generateSku('oversized_hoodie', 'Navy', 'M'),
-        stock: 8,
-        weight: 680,
-        inventoryPolicy: 'continue' as const,
-        quantityRule: { min: 1, max: null, increment: 1 },
-        barcode: '5901234123532',
-        featuredImage: hoodiePhoto1,
-        featuredImageId: hoodiePhoto1.id,
-    }));
-    await variantRepo.save(variantRepo.create({
-        product: hoodie,
-        productId: hoodie.id,
-        colorName: 'Navy',
-        colorValue: '#1a2744',
-        size: 'L',
-        sku: generateSku('oversized_hoodie', 'Navy', 'L'),
-        stock: 12,
-        weight: 720,
-        inventoryPolicy: 'continue' as const,
-        quantityRule: { min: 1, max: null, increment: 1 },
-        barcode: '5901234123549',
-        featuredImage: hoodiePhoto1,
-        featuredImageId: hoodiePhoto1.id,
-    }));
-    await productRepo.update(hoodie.id, { defaultVariantId: hoodieVarGreyM.id, primaryPhotoId: hoodiePhoto1.id });
-    console.log('   âœ“ oversized_hoodie (4 variants, 2 photos)');
+
+    const pantsFiles = await copyProductPhotos('pants', 'patchwork_denim_pants');
+    const pantsPhotos = await Promise.all(
+        pantsFiles.map(({ filename, sortOrder }) =>
+            photoRepo.save(photoRepo.create({
+                productId: denim.id,
+                product: denim,
+                url: `/uploads/products/patchwork_denim_pants/${filename}`,
+                altText: `Patchwork Denim Pants — view ${sortOrder}`,
+                sortOrder,
+            })),
+        ),
+    );
+    const pantsPrimary = pantsPhotos.find(p => p.sortOrder === -1)!;
+    const pantsMain = pantsPhotos.find(p => p.sortOrder === 1)!;
+
+    // 30, 36 → unavailable; rest → in stock
+    const pantsVariantDefs: Array<{ size: string; stock: number }> = [
+        { size: '28', stock: 8  },
+        { size: '30', stock: 0  },
+        { size: '32', stock: 12 },
+        { size: '34', stock: 10 },
+        { size: '36', stock: 0  },
+    ];
+    const pantsVariants = await Promise.all(
+        pantsVariantDefs.map(({ size, stock }) =>
+            variantRepo.save(variantRepo.create({
+                product: denim,
+                productId: denim.id,
+                colorName: 'Black',
+                colorValue: '#1a1a1a',
+                size,
+                sku: generateSku('patchwork_denim_pants', 'Black', size),
+                stock,
+                weight: 850,
+                inventoryPolicy: 'deny' as const,
+                quantityRule: { min: 1, max: null, increment: 1 },
+                featuredImage: pantsMain,
+                featuredImageId: pantsMain.id,
+            })),
+        ),
+    );
+    const pantsDefaultVariant = pantsVariants.find(v => v.stock > 0)!;
+    await productRepo.update(denim.id, {
+        defaultVariantId: pantsDefaultVariant.id,
+        primaryPhotoId: pantsPrimary.id,
+    });
+    console.log(`   ✓ patchwork_denim_pants (${pantsVariants.length} variants, ${pantsPhotos.length} photos)`);
 
     // --- Reviews ---
-    console.log('â­ Seeding reviews...');
+    console.log('⭐ Seeding reviews...');
     const reviewRepo = dataSource.getRepository(Review);
 
-    // black_wool_cap: APPROVED avg = (8+9+7)/3 = 8.0
+    // oversized_hoodie: APPROVED avg = (8+9+7)/3 = 8.0
     await reviewRepo.save([
-        reviewRepo.create({ product: cap, productId: cap.id, user: alice, userId: alice.id, email: alice.email, displayName: 'Alice', rating: 8, content: 'Fits perfectly, nice and warm for winter.', status: ReviewStatus.APPROVED }),
-        reviewRepo.create({ product: cap, productId: cap.id, user: bob, userId: bob.id, email: bob.email, displayName: 'Bob', rating: 9, content: 'Great quality wool, exactly what I needed.', status: ReviewStatus.APPROVED }),
-        reviewRepo.create({ product: cap, productId: cap.id, email: 'guest1@example.com', displayName: 'Guest Buyer', rating: 7, content: 'Solid cap, brim holds its shape well.', status: ReviewStatus.APPROVED }),
-        reviewRepo.create({ product: cap, productId: cap.id, user: charlie, userId: charlie.id, email: charlie.email, displayName: 'Charlie', rating: 6, content: 'Sizing feels a bit off â€” ordered M but fits like S.', status: ReviewStatus.PENDING }),
-        reviewRepo.create({ product: cap, productId: cap.id, email: 'spam1@junk.com', displayName: 'Check My Site', rating: 1, content: 'VISIT MY WEBSITE FOR DEALS', status: ReviewStatus.REJECTED }),
+        reviewRepo.create({ product: hoodie, productId: hoodie.id, user: alice, userId: alice.id, email: alice.email, displayName: 'Alice', rating: 8, content: 'Fits perfectly, super warm for winter.', status: ReviewStatus.APPROVED }),
+        reviewRepo.create({ product: hoodie, productId: hoodie.id, user: bob, userId: bob.id, email: bob.email, displayName: 'Bob', rating: 9, content: 'Great quality, embroidery looks amazing.', status: ReviewStatus.APPROVED }),
+        reviewRepo.create({ product: hoodie, productId: hoodie.id, email: 'guest1@example.com', displayName: 'Guest Buyer', rating: 7, content: 'Solid hoodie, worth the price.', status: ReviewStatus.APPROVED }),
+        reviewRepo.create({ product: hoodie, productId: hoodie.id, user: charlie, userId: charlie.id, email: charlie.email, displayName: 'Charlie', rating: 6, content: 'Runs a bit large, order a size down.', status: ReviewStatus.PENDING }),
+        reviewRepo.create({ product: hoodie, productId: hoodie.id, email: 'spam1@junk.com', displayName: 'Check My Site', rating: 1, content: 'VISIT MY WEBSITE FOR DEALS', status: ReviewStatus.REJECTED }),
     ]);
-    console.log('   âœ“ black_wool_cap â€” 3 APPROVED (avg 8.0), 1 PENDING, 1 REJECTED');
+    console.log('   ✓ oversized_hoodie — 3 APPROVED (avg 8.0), 1 PENDING, 1 REJECTED');
 
-    // classic_white_tee: APPROVED avg = (9+8+10)/3 = 9.0
+    // heavyweight_tee: APPROVED avg = (9+8+10)/3 = 9.0
     await reviewRepo.save([
-        reviewRepo.create({ product: tee, productId: tee.id, user: alice, userId: alice.id, email: alice.email, displayName: 'Alice', rating: 9, content: 'Super soft fabric, washes really well.', status: ReviewStatus.APPROVED }),
-        reviewRepo.create({ product: tee, productId: tee.id, user: bob, userId: bob.id, email: bob.email, displayName: 'Bob', rating: 8, content: 'Clean cut, great everyday tee.', status: ReviewStatus.APPROVED }),
-        reviewRepo.create({ product: tee, productId: tee.id, user: admin, userId: admin.id, email: admin.email, displayName: 'Admin', rating: 10, content: 'Perfect fit across the shoulders.', status: ReviewStatus.APPROVED }),
-        reviewRepo.create({ product: tee, productId: tee.id, user: charlie, userId: charlie.id, email: charlie.email, displayName: 'Charlie', rating: 5, content: 'Material is thinner than I expected.', status: ReviewStatus.PENDING }),
+        reviewRepo.create({ product: tee, productId: tee.id, user: alice, userId: alice.id, email: alice.email, displayName: 'Alice', rating: 9, content: 'Love the print, super heavy cotton.', status: ReviewStatus.APPROVED }),
+        reviewRepo.create({ product: tee, productId: tee.id, user: bob, userId: bob.id, email: bob.email, displayName: 'Bob', rating: 8, content: 'Unique design, great weight to the fabric.', status: ReviewStatus.APPROVED }),
+        reviewRepo.create({ product: tee, productId: tee.id, user: admin, userId: admin.id, email: admin.email, displayName: 'Admin', rating: 10, content: 'Perfect fit, exactly as described.', status: ReviewStatus.APPROVED }),
+        reviewRepo.create({ product: tee, productId: tee.id, user: charlie, userId: charlie.id, email: charlie.email, displayName: 'Charlie', rating: 5, content: 'A bit stiff at first, needs a wash.', status: ReviewStatus.PENDING }),
         reviewRepo.create({ product: tee, productId: tee.id, email: 'spam2@junk.com', displayName: 'Fake User', rating: 1, content: 'BUY MY COURSE NOW!!!', status: ReviewStatus.REJECTED }),
     ]);
-    console.log('   âœ“ classic_white_tee â€” 3 APPROVED (avg 9.0), 1 PENDING, 1 REJECTED');
+    console.log('   ✓ heavyweight_tee — 3 APPROVED (avg 9.0), 1 PENDING, 1 REJECTED');
 
-    // oversized_hoodie: APPROVED avg = (7+8+9)/3 = 8.0
+    // patchwork_denim_pants: APPROVED avg = (7+8+9)/3 = 8.0
     await reviewRepo.save([
-        reviewRepo.create({ product: hoodie, productId: hoodie.id, user: alice, userId: alice.id, email: alice.email, displayName: 'Alice', rating: 7, content: 'Love the oversized fit, very cosy.', status: ReviewStatus.APPROVED }),
-        reviewRepo.create({ product: hoodie, productId: hoodie.id, user: bob, userId: bob.id, email: bob.email, displayName: 'Bob', rating: 8, content: 'Heavyweight fleece â€” worth every penny.', status: ReviewStatus.APPROVED }),
-        reviewRepo.create({ product: hoodie, productId: hoodie.id, user: charlie, userId: charlie.id, email: charlie.email, displayName: 'Charlie', rating: 9, content: 'The grey colour is exactly as pictured.', status: ReviewStatus.APPROVED }),
-        reviewRepo.create({ product: hoodie, productId: hoodie.id, email: 'guest2@example.com', displayName: 'Cautious Buyer', rating: 5, content: 'Waiting to wash it before my final verdict.', status: ReviewStatus.PENDING }),
-        reviewRepo.create({ product: hoodie, productId: hoodie.id, email: 'spam3@junk.com', displayName: 'Bot Account', rating: 1, content: 'Not a real customer.', status: ReviewStatus.REJECTED }),
+        reviewRepo.create({ product: denim, productId: denim.id, user: alice, userId: alice.id, email: alice.email, displayName: 'Alice', rating: 7, content: 'Cool design, runs a bit slim.', status: ReviewStatus.APPROVED }),
+        reviewRepo.create({ product: denim, productId: denim.id, user: bob, userId: bob.id, email: bob.email, displayName: 'Bob', rating: 8, content: 'Heavy quality denim, very unique look.', status: ReviewStatus.APPROVED }),
+        reviewRepo.create({ product: denim, productId: denim.id, user: charlie, userId: charlie.id, email: charlie.email, displayName: 'Charlie', rating: 9, content: 'Exactly as pictured, love the patchwork detail.', status: ReviewStatus.APPROVED }),
+        reviewRepo.create({ product: denim, productId: denim.id, email: 'guest2@example.com', displayName: 'Cautious Buyer', rating: 5, content: "Waiting to see how they hold up after washing.", status: ReviewStatus.PENDING }),
+        reviewRepo.create({ product: denim, productId: denim.id, email: 'spam3@junk.com', displayName: 'Bot Account', rating: 1, content: 'Not a real customer.', status: ReviewStatus.REJECTED }),
     ]);
-    console.log('   âœ“ oversized_hoodie â€” 3 APPROVED (avg 8.0), 1 PENDING, 1 REJECTED');
+    console.log('   ✓ patchwork_denim_pants — 3 APPROVED (avg 8.0), 1 PENDING, 1 REJECTED');
 
     // --- Orders ---
-    console.log('ðŸ“¦ Seeding orders...');
+    console.log('📦 Seeding orders...');
     const orderRepo = dataSource.getRepository(Order);
     const itemRepo = dataSource.getRepository(OrderItem);
 
@@ -475,8 +449,13 @@ async function seed() {
     const bobAddr = { firstName: 'Bob', lastName: 'Jones', address1: '7 Maple Avenue', city: 'Manchester', country: 'GB', province: 'Greater Manchester', postalCode: 'M1 2AB', phone: '+44 161 496 0123' };
     const guestAddr = { firstName: 'Jane', lastName: 'Doe', address1: '99 Elm Street', city: 'Bristol', country: 'GB', province: 'Somerset', postalCode: 'BS1 5TR', phone: '+44 117 496 0999' };
 
-    // Order 1: alice â€” PAID + FULFILLED
-    // cap Black/One Size Ã—1 @ 29.99 + tee White/M Ã—2 @ 24.99 + standard shipping 4.99 = 84.96
+    const hoodieM  = hoodieVariants.find(v => v.size === 'M')!;
+    const teeXS    = teeVariants.find(v => v.size === 'XS')!;
+    const teeM     = teeVariants.find(v => v.size === 'M')!;
+    const pants32  = pantsVariants.find(v => v.size === '32')!;
+
+    // Order 1: alice — PAID + FULFILLED
+    // tee XS ×1 @ 37.00 + hoodie M ×1 @ 86.00 + standard 4.99 = 127.99
     const order1 = await orderRepo.save(orderRepo.create({
         orderNumber: 'O2SHOP-000001',
         orderSequence: 1,
@@ -484,7 +463,7 @@ async function seed() {
         userId: alice.id,
         paymentStatus: PaymentStatus.PAID,
         fulfillmentStatus: FulfillmentStatus.FULFILLED,
-        totalAmount: 84.96,
+        totalAmount: 127.99,
         totalCurrency: 'USD',
         shippingMethod: standardShipping,
         shippingMethodId: standardShipping.id,
@@ -495,13 +474,13 @@ async function seed() {
         billingAddress: aliceAddr as any,
     }));
     await itemRepo.save([
-        itemRepo.create({ order: order1, product: cap, productId: cap.id, productName: cap.displayName, productSku: capVarBlack.sku, productPrice: 29.99, productCurrency: 'USD', quantity: 1, total: 29.99 }),
-        itemRepo.create({ order: order1, product: tee, productId: tee.id, productName: tee.displayName, productSku: teeVarWhiteM.sku, productPrice: 24.99, productCurrency: 'USD', quantity: 2, total: 49.98 }),
+        itemRepo.create({ order: order1, product: tee, productId: tee.id, productName: tee.displayName, productSku: teeXS.sku, productPrice: 37.00, productCurrency: 'USD', quantity: 1, total: 37.00 }),
+        itemRepo.create({ order: order1, product: hoodie, productId: hoodie.id, productName: hoodie.displayName, productSku: hoodieM.sku, productPrice: 86.00, productCurrency: 'USD', quantity: 1, total: 86.00 }),
     ]);
-    console.log(`   âœ“ O2SHOP-000001 â€” alice, PAID+FULFILLED (cap Ã—1 + tee White/M Ã—2)`);
+    console.log(`   ✓ O2SHOP-000001 — alice, PAID+FULFILLED (tee XS ×1 + hoodie M ×1)`);
 
-    // Order 2: bob â€” PENDING + UNFULFILLED
-    // hoodie Grey/L Ã—1 @ 59.99 + express shipping 12.99 = 72.98
+    // Order 2: bob — PENDING + UNFULFILLED
+    // pants 32 ×1 @ 140.00 + express 12.99 = 152.99
     const order2 = await orderRepo.save(orderRepo.create({
         orderNumber: 'O2SHOP-000002',
         orderSequence: 2,
@@ -509,7 +488,7 @@ async function seed() {
         userId: bob.id,
         paymentStatus: PaymentStatus.PENDING,
         fulfillmentStatus: FulfillmentStatus.UNFULFILLED,
-        totalAmount: 72.98,
+        totalAmount: 152.99,
         totalCurrency: 'USD',
         shippingMethod: expressShipping,
         shippingMethodId: expressShipping.id,
@@ -520,12 +499,12 @@ async function seed() {
         billingAddress: bobAddr as any,
     }));
     await itemRepo.save(
-        itemRepo.create({ order: order2, product: hoodie, productId: hoodie.id, productName: hoodie.displayName, productSku: hoodieVarGreyL.sku, productPrice: 59.99, productCurrency: 'USD', quantity: 1, total: 59.99 }),
+        itemRepo.create({ order: order2, product: denim, productId: denim.id, productName: denim.displayName, productSku: pants32.sku, productPrice: 140.00, productCurrency: 'USD', quantity: 1, total: 140.00 }),
     );
-    console.log(`   âœ“ O2SHOP-000002 â€” bob, PENDING+UNFULFILLED (hoodie Grey/L Ã—1)`);
+    console.log(`   ✓ O2SHOP-000002 — bob, PENDING+UNFULFILLED (pants 32 ×1)`);
 
-    // Order 3: guest â€” PAID + UNFULFILLED
-    // tee Black/S Ã—2 @ 24.99 + standard shipping 4.99 = 54.97
+    // Order 3: guest — PAID + UNFULFILLED
+    // tee M ×2 @ 37.00 + standard 4.99 = 78.99
     const order3 = await orderRepo.save(orderRepo.create({
         orderNumber: 'O2SHOP-000003',
         orderSequence: 3,
@@ -534,7 +513,7 @@ async function seed() {
         lastName: 'Doe',
         paymentStatus: PaymentStatus.PAID,
         fulfillmentStatus: FulfillmentStatus.UNFULFILLED,
-        totalAmount: 54.97,
+        totalAmount: 78.99,
         totalCurrency: 'USD',
         shippingMethod: standardShipping,
         shippingMethodId: standardShipping.id,
@@ -545,38 +524,38 @@ async function seed() {
         billingAddress: guestAddr as any,
     }));
     await itemRepo.save(
-        itemRepo.create({ order: order3, product: tee, productId: tee.id, productName: tee.displayName, productSku: teeVarBlackS.sku, productPrice: 24.99, productCurrency: 'USD', quantity: 2, total: 49.98 }),
+        itemRepo.create({ order: order3, product: tee, productId: tee.id, productName: tee.displayName, productSku: teeM.sku, productPrice: 37.00, productCurrency: 'USD', quantity: 2, total: 74.00 }),
     );
-    console.log(`   âœ“ O2SHOP-000003 â€” guest@example.com, PAID+UNFULFILLED (tee Black/S Ã—2)`);
+    console.log(`   ✓ O2SHOP-000003 — guest@example.com, PAID+UNFULFILLED (tee M ×2)`);
 
     // --- Saved Addresses ---
-    console.log('ðŸ  Seeding saved addresses...');
+    console.log('🏠 Seeding saved addresses...');
     const savedAddrRepo = dataSource.getRepository(SavedAddress);
 
     await savedAddrRepo.save(savedAddrRepo.create({ user: alice, userId: alice.id, name: 'Home', shippingAddress: aliceAddr as any, billingAddress: aliceAddr as any, billingIsSameAsShipping: true }));
     await savedAddrRepo.save(savedAddrRepo.create({ user: bob, userId: bob.id, name: 'Home', shippingAddress: bobAddr as any, billingAddress: bobAddr as any, billingIsSameAsShipping: true }));
-    console.log('   âœ“ alice â†’ Home');
-    console.log('   âœ“ bob â†’ Home');
+    console.log('   ✓ alice → Home');
+    console.log('   ✓ bob → Home');
 
-    console.log('\nðŸŽ‰ Seed complete!');
+    console.log('\n🎉 Seed complete!');
     console.log('\nTest credentials:');
     console.log('  admin@o2shop.dev    / Admin1234!   (admin)');
     console.log('  alice@o2shop.dev    / Alice1234!   (regular, active)');
     console.log('  bob@o2shop.dev      / Bob12345!    (regular, active)');
     console.log('  charlie@o2shop.dev  / Charlie123!  (regular, inactive)');
     console.log('\nOrders:');
-    console.log('  O2SHOP-000001 â€” alice, PAID + FULFILLED');
-    console.log('  O2SHOP-000002 â€” bob,   PENDING + UNFULFILLED');
-    console.log('  O2SHOP-000003 â€” guest@example.com, PAID + UNFULFILLED');
+    console.log('  O2SHOP-000001 — alice, PAID + FULFILLED   (tee XS + hoodie M)');
+    console.log('  O2SHOP-000002 — bob,   PENDING + UNFULFILLED (pants 32)');
+    console.log('  O2SHOP-000003 — guest@example.com, PAID + UNFULFILLED (tee M ×2)');
     console.log('\nExpected ratings (APPROVED reviews only):');
-    console.log('  black_wool_cap    â†’ 8.0  ( (8+9+7) / 3 )');
-    console.log('  classic_white_tee â†’ 9.0  ( (9+8+10) / 3 )');
-    console.log('  oversized_hoodie  â†’ 8.0  ( (7+8+9) / 3 )');
+    console.log('  oversized_hoodie      → 8.0  ( (8+9+7) / 3 )');
+    console.log('  heavyweight_tee       → 9.0  ( (9+8+10) / 3 )');
+    console.log('  patchwork_denim_pants → 8.0  ( (7+8+9) / 3 )');
 
     await dataSource.destroy();
 }
 
 seed().catch(e => {
-    console.error('âŒ Seed failed:', e);
+    console.error('❌ Seed failed:', e);
     process.exit(1);
 });

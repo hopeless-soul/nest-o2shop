@@ -13,6 +13,8 @@ import { ShippingModule } from './shipping/shipping.module';
 import { AddressesModule } from './addresses/addresses.module';
 import { OrdersModule } from './orders/orders.module';
 import { MeModule } from './me/me.module';
+import { ClsModule } from 'nestjs-cls';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { MeModule } from './me/me.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ClsModule.forRoot({ middleware: { mount: true } }),
     DatabaseModule,
     StorageModule,
     AuthModule,
@@ -31,6 +34,7 @@ import { MeModule } from './me/me.module';
     AddressesModule,
     OrdersModule,
     MeModule,
+    AuditModule,
   ],
   controllers: [AppController],
   providers: [AppService],

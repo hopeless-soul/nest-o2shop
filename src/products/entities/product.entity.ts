@@ -43,7 +43,7 @@ export class Product {
   @Column()
   subCategoryId: string;
 
-  @ManyToOne(() => SubCategory, { onDelete: 'RESTRICT' })
+  @ManyToOne(() => SubCategory, {  onDelete: 'RESTRICT' })
   subCategory: SubCategory;
 
   // Note: the type is currently being used as main tag
@@ -92,6 +92,13 @@ export class Product {
   @ManyToOne(() => ProductPhoto, { nullable: true, onDelete: 'SET NULL', eager: false })
   @JoinColumn({ name: 'primaryPhotoId' })
   primaryPhoto: ProductPhoto | null;
+
+  @Column({ nullable: true })
+  featuredPhotoId: string | null;
+
+  @ManyToOne(() => ProductPhoto, { nullable: true, onDelete: 'SET NULL', eager: false })
+  @JoinColumn({ name: 'featuredPhotoId' })
+  featuredPhoto: ProductPhoto | null;
 
   @OneToMany(() => ProductPhoto, (photo) => photo.product, { cascade: true })
   photos: ProductPhoto[];

@@ -23,6 +23,9 @@ export class ProductPhoto {
   @Column({ nullable: true })
   altText?: string;
 
+  @Column({ default: false })
+  isFeatured: boolean;
+
   @Column({ default: 0 })
   sortOrder: number;
 

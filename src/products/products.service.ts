@@ -8,7 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { ProductVariant } from './entities/product-variant.entity';
 import { ProductPhoto } from './entities/product-photo.entity';
@@ -16,6 +16,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateVariantDto } from './dto/create-variant.dto';
 import { UpdateVariantDto } from './dto/update-variant.dto';
+import { UpdatePhotoDto } from './dto/update-photo.dto';
+import { ReorderPhotoItemDto } from './dto/reorder-photos.dto';
 import { StorageService } from '../common/storage/storage.service';
 import { ReviewStatus } from '../reviews/enums/review-status.enum';
 import { FilterProductsQueryDto } from './dto/filter-products-query.dto';
@@ -65,6 +67,7 @@ export class ProductsService {
       .leftJoinAndSelect('product.variants', 'variants')
       .leftJoinAndSelect('variants.featuredImage', 'variantPhoto')
       .leftJoinAndSelect('product.primaryPhoto', 'primaryPhoto')
+      .leftJoinAndSelect('product.featuredPhoto', 'featuredPhoto')
       .leftJoinAndSelect('product.photos', 'photos')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.subCategory', 'subCategory')
@@ -135,6 +138,7 @@ export class ProductsService {
       .leftJoinAndSelect('product.defaultVariant', 'defaultVariant')
       .leftJoinAndSelect('defaultVariant.featuredImage', 'defaultVariantPhoto')
       .leftJoinAndSelect('product.primaryPhoto', 'primaryPhoto')
+      .leftJoinAndSelect('product.featuredPhoto', 'featuredPhoto')
       .leftJoinAndSelect('product.photos', 'photos')
       .leftJoinAndSelect('product.variants', 'variants')
       .leftJoinAndSelect('variants.featuredImage', 'variantPhoto')
@@ -166,6 +170,7 @@ export class ProductsService {
       relations: {
         defaultVariant: { featuredImage: true },
         primaryPhoto: true,
+        featuredPhoto: true,
         photos: true,
         variants: { featuredImage: true },
         category: true,
@@ -211,8 +216,9 @@ export class ProductsService {
   }
 
   async softDelete(id: string): Promise<void> {
-    await this.findById(id);
-    await this.productRepo.softDelete(id);
+    const product = await this.findById(id);
+    product.deletedAt = new Date();
+    await this.productRepo.save(product);
   }
 
   async createVariant(
@@ -296,6 +302,105 @@ export class ProductsService {
     if (!photo) throw new NotFoundException(`Photo #${photoId} not found`);
     await this.storageService.delete(photo.url);
     await this.photoRepo.remove(photo);
+  }
+
+  async setFeaturedPhoto(
+    productId: string,
+    file: Express.Multer.File,
+    altText?: string,
+  ): Promise<ProductPhoto> {
+    const product = await this.findById(productId);
+
+    if (product.featuredPhotoId) {
+      const existing = await this.photoRepo.findOne({
+        where: { id: product.featuredPhotoId },
+      });
+      if (existing) {
+        await this.storageService.delete(existing.url);
+        await this.photoRepo.remove(existing);
+      }
+    }
+
+    const ext = extname(file.originalname).toLowerCase() || '.bin';
+    const subPath = `products/${productId}/featured/${randomUUID()}${ext}`;
+    const url = await this.storageService.save(file, subPath);
+
+    let width: number | null = null;
+    let height: number | null = null;
+    let aspectRatio: number | null = null;
+
+    if (file.buffer) {
+      try {
+        const meta = await sharp(file.buffer).metadata();
+        width = meta.width ?? null;
+        height = meta.height ?? null;
+        aspectRatio =
+          meta.width && meta.height
+            ? parseFloat((meta.width / meta.height).toFixed(4))
+            : null;
+      } catch {
+        // dimensions remain null if sharp cannot parse the file
+      }
+    }
+
+    const photo = await this.photoRepo.save(
+      this.photoRepo.create({ productId, url, altText, width, height, aspectRatio, isFeatured: true }),
+    );
+
+    product.featuredPhotoId = photo.id;
+    await this.productRepo.save(product);
+
+    return photo;
+  }
+
+  async deleteFeaturedPhoto(productId: string): Promise<void> {
+    const product = await this.findById(productId);
+    if (!product.featuredPhotoId) {
+      throw new NotFoundException('No featured photo set for this product');
+    }
+    const photo = await this.photoRepo.findOne({
+      where: { id: product.featuredPhotoId },
+    });
+    if (photo) {
+      await this.storageService.delete(photo.url);
+      await this.photoRepo.remove(photo);
+    }
+    product.featuredPhotoId = null;
+    await this.productRepo.save(product);
+  }
+
+  async updatePhoto(
+    productId: string,
+    photoId: string,
+    dto: UpdatePhotoDto,
+  ): Promise<ProductPhoto> {
+    const photo = await this.photoRepo.findOne({
+      where: { id: photoId, productId },
+    });
+    if (!photo) throw new NotFoundException(`Photo #${photoId} not found`);
+    Object.assign(photo, dto);
+    return this.photoRepo.save(photo);
+  }
+
+  async reorderPhotos(
+    productId: string,
+    items: ReorderPhotoItemDto[],
+  ): Promise<ProductPhoto[]> {
+    await this.findById(productId);
+    const ids = items.map((i) => i.id);
+    const photos = await this.photoRepo.find({
+      where: { id: In(ids), productId },
+    });
+    if (photos.length !== ids.length) {
+      throw new NotFoundException(
+        'One or more photos not found on this product',
+      );
+    }
+    const photoMap = new Map(photos.map((p) => [p.id, p]));
+    for (const item of items) {
+      photoMap.get(item.id)!.sortOrder = item.sortOrder;
+    }
+    return this.photoRepo.save(photos);
   }
 
   async findProductReviews(
@@ -398,6 +503,11 @@ export class ProductsService {
     if (sizes.length > 0) options.push({ name: 'Size', position: 1, values: sizes });
     if (colors.length > 1) options.push({ name: 'Color', position: 2, values: colors });
     (product as any).options = options;
+
+    // Exclude featured photo from the gallery array
+    if (product.photos) {
+      product.photos = product.photos.filter((p) => !p.isFeatured);
+    }
 
     // variantIds reverse lookup on photos (only when full photos array is loaded)
     if (product.photos?.length) {

@@ -112,6 +112,7 @@ export class UsersService {
       search,
       role,
       isDeleted,
+      isActive,
       userId,
       createdAfter,
       createdBefore,
@@ -121,6 +122,10 @@ export class UsersService {
 
     if (isDeleted) {
       qb.withDeleted().where('user.deletedAt IS NOT NULL');
+    }
+
+    if (isActive !== undefined) {
+      qb.andWhere('user.isActive = :isActive', { isActive });
     }
 
     if (userId) {
@@ -172,8 +177,9 @@ export class UsersService {
   }
 
   async softDeleteAdmin(id: string): Promise<void> {
-    await this.findByIdAdmin(id);
-    await this.userRepository.softDelete(id);
+    const user = await this.findByIdAdmin(id);
+    user.deletedAt = new Date();
+    await this.userRepository.save(user);
   }
 
   async findByEmail(

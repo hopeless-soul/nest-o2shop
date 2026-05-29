@@ -56,6 +56,7 @@ async function bootstrap() {
     .addTag('Admin – Categories', 'Admin: category and subcategory management')
     .addTag('Admin – Shipping', 'Admin: shipping method management')
     .addTag('Admin – Users', 'Admin: user management')
+    .addTag('Admin – Audit Log', 'Admin: change history for all entities')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

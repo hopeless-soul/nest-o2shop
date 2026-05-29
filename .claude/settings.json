@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Read(//c/Users/hk/.claude/plans/**)",
-      "Bash(Get-ChildItem -Recurse -Path \"c:\\\\Users\\\\hk\\\\Documents\\\\Development\\\\nest\\\\nest-o2shop\\\\src\" -Filter \"*.entity.ts\")"
+      "Bash(Get-ChildItem -Recurse -Path \"c:\\\\Users\\\\hk\\\\Documents\\\\Development\\\\nest\\\\nest-o2shop\\\\src\" -Filter \"*.entity.ts\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\hk\\\\Documents\\\\Development\\\\nest\\\\nest-o2shop\\\\src\" -Recurse -Include \"*order*\")",
+      "Bash(Get-ChildItem \"c:\\\\Users\\\\hk\\\\Documents\\\\Development\\\\nest\\\\nest-o2shop\\\\src\\\\\" -Directory)",
+      "Bash(Find c:\\\\Users\\\\hk\\\\Documents\\\\Development\\\\nest\\\\nest-o2shop\\\\src\\\\orders -name \"*.entity.ts\" -o -name \"*photo*\")",
+      "Read(//c/Users/hk/Documents/Development/nest/nest-o2shop/**)",
+      "Bash(powershell -Command \"Get-ChildItem -Path 'c:\\\\Users\\\\hk\\\\Documents\\\\Development\\\\nest\\\\nest-o2shop' -Filter '*migration*' -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | head -20\")"
     ]
   }
 }

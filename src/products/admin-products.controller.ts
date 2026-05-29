@@ -38,6 +38,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateVariantDto } from './dto/create-variant.dto';
 import { UpdateVariantDto } from './dto/update-variant.dto';
+import { UpdatePhotoDto } from './dto/update-photo.dto';
+import { ReorderPhotosDto } from './dto/reorder-photos.dto';
 import { AdminFilterProductsQueryDto } from './dto/admin-filter-products-query.dto';
 import { FilterReviewsQueryDto } from '../reviews/dto/filter-reviews-query.dto';
 import { AdminProductResponseDto, ProductListItemResponseDto } from './dto/product-response.dto';
@@ -259,6 +261,96 @@ export class AdminProductsController {
     @Query('altText') altText?: string,
   ): Promise<ProductPhotoResponseDto> {
     const photo = await this.productsService.addPhoto(id, file, altText);
+    return plainToInstance(ProductPhotoResponseDto, photo, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @ApiOperation({ summary: 'Upload or replace the featured (brand) photo for a product' })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiQuery({
+    name: 'altText',
+    required: false,
+    description: 'Alt text for the featured image',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Image file (JPEG, PNG, WebP, GIF; max 5MB)',
+        },
+      },
+    },
+  })
+  @ApiCreatedResponse({ type: ProductPhotoResponseDto })
+  @Post(':id/featured-photo')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: imageFileFilter,
+    }),
+  )
+  async setFeaturedPhoto(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Query('altText') altText?: string,
+  ): Promise<ProductPhotoResponseDto> {
+    const photo = await this.productsService.setFeaturedPhoto(id, file, altText);
+    return plainToInstance(ProductPhotoResponseDto, photo, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @ApiOperation({ summary: 'Delete the featured (brand) photo for a product' })
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiNoContentResponse({ description: 'Featured photo deleted' })
+  @ApiNotFoundResponse({ description: 'No featured photo set' })
+  @Delete(':id/featured-photo')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteFeaturedPhoto(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<void> {
+    await this.productsService.deleteFeaturedPhoto(id);
+  }
+
+  @ApiOperation({ summary: 'Batch-reorder photos by setting sortOrder' })
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiBody({ type: ReorderPhotosDto })
+  @ApiOkResponse({ type: [ProductPhotoResponseDto] })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiNotFoundResponse({ description: 'Product or photo not found' })
+  @Patch(':id/photos/reorder')
+  async reorderPhotos(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ReorderPhotosDto,
+  ): Promise<ProductPhotoResponseDto[]> {
+    const photos = await this.productsService.reorderPhotos(id, dto.photos);
+    return photos.map((p) =>
+      plainToInstance(ProductPhotoResponseDto, p, {
+        excludeExtraneousValues: true,
+      }),
+    );
+  }
+
+  @ApiOperation({ summary: 'Update photo metadata (altText, sortOrder)' })
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiParam({ name: 'photoId', description: 'Photo UUID' })
+  @ApiBody({ type: UpdatePhotoDto })
+  @ApiOkResponse({ type: ProductPhotoResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
+  @ApiNotFoundResponse({ description: 'Photo not found' })
+  @Patch(':id/photos/:photoId')
+  async updatePhoto(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('photoId', ParseUUIDPipe) photoId: string,
+    @Body() dto: UpdatePhotoDto,
+  ): Promise<ProductPhotoResponseDto> {
+    const photo = await this.productsService.updatePhoto(id, photoId, dto);
     return plainToInstance(ProductPhotoResponseDto, photo, {
       excludeExtraneousValues: true,
     });
