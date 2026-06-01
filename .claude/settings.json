@@ -7,7 +7,8 @@
       "Bash(Get-ChildItem \"c:\\\\Users\\\\hk\\\\Documents\\\\Development\\\\nest\\\\nest-o2shop\\\\src\\\\\" -Directory)",
       "Bash(Find c:\\\\Users\\\\hk\\\\Documents\\\\Development\\\\nest\\\\nest-o2shop\\\\src\\\\orders -name \"*.entity.ts\" -o -name \"*photo*\")",
       "Read(//c/Users/hk/Documents/Development/nest/nest-o2shop/**)",
-      "Bash(powershell -Command \"Get-ChildItem -Path 'c:\\\\Users\\\\hk\\\\Documents\\\\Development\\\\nest\\\\nest-o2shop' -Filter '*migration*' -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | head -20\")"
+      "Bash(powershell -Command \"Get-ChildItem -Path 'c:\\\\Users\\\\hk\\\\Documents\\\\Development\\\\nest\\\\nest-o2shop' -Filter '*migration*' -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | head -20\")",
+      "Bash(winget --version)"
     ]
   }
 }

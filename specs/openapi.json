@@ -4045,6 +4045,29 @@
           "Payments"
         ]
       }
+    },
+    "/payments/stripe/webhook": {
+      "post": {
+        "operationId": "PaymentsController_stripeWebhook",
+        "parameters": [
+          {
+            "name": "stripe-signature",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Payments"
+        ]
+      }
     }
   },
   "info": {
@@ -4387,6 +4410,20 @@
       "UpdateAdminUserDto": {
         "type": "object",
         "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com",
+            "format": "email"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "password": {
+            "type": "string",
+            "example": "newP@ss1",
+            "minLength": 8
+          },
           "role": {
             "example": "regular",
             "allOf": [

@@ -10,7 +10,6 @@ import { AuthGuard } from '@nestjs/passport';
 export class JwtRefreshAuthGuard extends AuthGuard('jwt-refresh') {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const can = (await super.canActivate(context)) as boolean;
-    console.log('Can activate: ', can);
     return can;
   }
 
@@ -22,11 +21,9 @@ export class JwtRefreshAuthGuard extends AuthGuard('jwt-refresh') {
     status?: any,
   ): TUser {
     if (info instanceof TokenExpiredError) {
-      console.log('Refresh token expired');
       throw new UnauthorizedException('Refresh token expired');
     }
     if (info instanceof JsonWebTokenError) {
-      console.log('Invalid refresh token');
       throw new UnauthorizedException('Invalid refresh token');
     }
     return super.handleRequest(err, user, info, context, status);
