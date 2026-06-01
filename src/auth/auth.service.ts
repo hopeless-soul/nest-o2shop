@@ -71,7 +71,7 @@ export class AuthService {
   ): Promise<CurrentUserData> {
     // Use array-form select so the password column (select:false) is reliably included.
     const user = await this.usersService.findByEmail(email, {
-      select: ['id', 'email', 'role', 'password', 'googleLinked', 'tokenVersion', 'isActive'],
+      select: { id: true, email: true, role: true, password: true, googleLinked: true, tokenVersion: true, isActive: true },
     });
 
     if (!user) {
