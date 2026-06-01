@@ -7,7 +7,10 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post('stripe/intent')
-  createIntent(@Body() dto: CreateIntentDto) {
-    return this.paymentsService.createPaymentIntent(dto.amount, dto.currency);
+  async createIntent(@Body() dto: CreateIntentDto) {
+    return await this.paymentsService.createPaymentIntent(
+      dto.amount,
+      dto.currency,
+    );
   }
 }
