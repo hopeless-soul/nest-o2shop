@@ -266,6 +266,7 @@ export class ProductsService {
     productId: string,
     file: Express.Multer.File,
     altText?: string,
+    sortOrder?: number,
   ): Promise<ProductPhoto> {
     await this.findById(productId);
     const ext = extname(file.originalname).toLowerCase() || '.bin';
@@ -291,7 +292,7 @@ export class ProductsService {
     }
 
     return this.photoRepo.save(
-      this.photoRepo.create({ productId, url, altText, width, height, aspectRatio }),
+      this.photoRepo.create({ productId, url, altText, sortOrder, width, height, aspectRatio }),
     );
   }
 

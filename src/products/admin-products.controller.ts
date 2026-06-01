@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
@@ -234,6 +235,12 @@ export class AdminProductsController {
     required: false,
     description: 'Alt text for the image',
   })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    description: 'Display order of the photo (0-based integer)',
+    schema: { type: 'integer', minimum: 0 },
+  })
   @ApiBody({
     schema: {
       type: 'object',
@@ -259,8 +266,9 @@ export class AdminProductsController {
     @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
     @Query('altText') altText?: string,
+    @Query('sortOrder', new ParseIntPipe({ optional: true })) sortOrder?: number,
   ): Promise<ProductPhotoResponseDto> {
-    const photo = await this.productsService.addPhoto(id, file, altText);
+    const photo = await this.productsService.addPhoto(id, file, altText, sortOrder);
     return plainToInstance(ProductPhotoResponseDto, photo, {
       excludeExtraneousValues: true,
     });

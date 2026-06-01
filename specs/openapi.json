@@ -2230,6 +2230,16 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Display order of the photo (0-based integer)",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
           }
         ],
         "requestBody": {
