@@ -9,9 +9,15 @@ export class ProductPhotoSummaryDto {
   @ApiProperty({ format: 'uuid' }) @Expose() id: string;
   @ApiProperty() @Expose() url: string;
   @ApiPropertyOptional() @Expose() altText?: string;
-  @ApiPropertyOptional({ example: 1200, nullable: true }) @Expose() width?: number | null;
-  @ApiPropertyOptional({ example: 1500, nullable: true }) @Expose() height?: number | null;
-  @ApiPropertyOptional({ example: 0.8, nullable: true }) @Expose() aspectRatio?: number | null;
+  @ApiPropertyOptional({ example: 1200, nullable: true }) @Expose() width?:
+    | number
+    | null;
+  @ApiPropertyOptional({ example: 1500, nullable: true }) @Expose() height?:
+    | number
+    | null;
+  @ApiPropertyOptional({ example: 0.8, nullable: true })
+  @Expose()
+  aspectRatio?: number | null;
 }
 
 const ProductDescriptionSchema = {
@@ -69,7 +75,9 @@ export class SubCategorySummaryDto {
 export class ProductOptionDto {
   @ApiProperty({ example: 'Size' }) @Expose() name: string;
   @ApiProperty({ example: 1 }) @Expose() position: number;
-  @ApiProperty({ type: [String], example: ['XS', 'S', 'M', 'L', 'XL'] }) @Expose() values: string[];
+  @ApiProperty({ type: [String], example: ['XS', 'S', 'M', 'L', 'XL'] })
+  @Expose()
+  values: string[];
 }
 
 export class ProductResponseDto {
@@ -205,7 +213,9 @@ export class ProductListItemResponseDto {
   @ApiProperty({ example: 49.99 }) @Expose() priceMax: number;
   @ApiProperty({ example: false }) @Expose() priceVaries: boolean;
 
-  @ApiPropertyOptional({ example: 34.99, nullable: true }) @Expose() compareAtPrice?: number | null;
+  @ApiPropertyOptional({ example: 34.99, nullable: true })
+  @Expose()
+  compareAtPrice?: number | null;
 
   @ApiPropertyOptional({ nullable: true, example: 4.5 })
   @Expose()
@@ -274,4 +284,6 @@ export class AdminProductListItemResponseDto extends ProductListItemResponseDto 
   updatedAt: Date;
 }
 
-export class PaginatedAdminProductListItemResponseDto extends PaginatedDto(AdminProductListItemResponseDto) {}
+export class PaginatedAdminProductListItemResponseDto extends PaginatedDto(
+  AdminProductListItemResponseDto,
+) {}

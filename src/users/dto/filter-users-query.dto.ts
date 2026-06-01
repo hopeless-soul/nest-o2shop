@@ -31,7 +31,10 @@ export class FilterUsersQueryDto extends PaginationQueryDto {
   @IsBoolean()
   isDeleted?: boolean;
 
-  @ApiPropertyOptional({ example: true, description: 'Filter by active status' })
+  @ApiPropertyOptional({
+    example: true,
+    description: 'Filter by active status',
+  })
   @IsOptional()
   @Transform(({ value }) => value === 'true')
   @IsBoolean()

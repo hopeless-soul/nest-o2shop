@@ -166,6 +166,11 @@ export class UsersService {
 
   async updateAdmin(id: string, dto: UpdateAdminUserDto): Promise<User> {
     const user = await this.findByIdAdmin(id);
+    if (dto.email !== undefined) user.email = dto.email;
+    if (dto.displayName !== undefined) user.displayName = dto.displayName || undefined;
+    if (dto.password !== undefined) {
+      user.password = await this.hashingService.hash(dto.password);
+    }
     if (dto.role !== undefined) user.role = dto.role;
     if (dto.isActive !== undefined) user.isActive = dto.isActive;
     if (dto.resetTokenVersion) user.tokenVersion += 1;

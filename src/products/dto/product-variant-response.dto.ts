@@ -4,7 +4,9 @@ import { ProductPhotoResponseDto } from './product-photo-response.dto';
 
 export class QuantityRuleResponseDto {
   @ApiProperty({ example: 1 }) @Expose() min: number;
-  @ApiPropertyOptional({ example: null, nullable: true }) @Expose() max: number | null;
+  @ApiPropertyOptional({ example: null, nullable: true }) @Expose() max:
+    | number
+    | null;
   @ApiProperty({ example: 1 }) @Expose() increment: number;
 }
 
@@ -49,7 +51,11 @@ export class ProductVariantResponseDto {
   @Expose()
   compareAtPrice?: number | null;
 
-  @ApiPropertyOptional({ example: 450, nullable: true, description: 'Weight in grams' })
+  @ApiPropertyOptional({
+    example: 450,
+    nullable: true,
+    description: 'Weight in grams',
+  })
   @Expose()
   weight?: number | null;
 

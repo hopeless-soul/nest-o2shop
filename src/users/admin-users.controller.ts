@@ -55,7 +55,10 @@ export class AdminUsersController {
   @ApiOperation({ summary: 'Create a new user (admin)' })
   @ApiBody({ type: CreateAdminUserDto })
   @ApiCreatedResponse({ type: AdminUserResponseDto })
-  @ApiBadRequestResponse({ type: ErrorResponseDto, description: 'Validation error' })
+  @ApiBadRequestResponse({
+    type: ErrorResponseDto,
+    description: 'Validation error',
+  })
   @ApiConflictResponse({ description: 'Email already in use' })
   @Post()
   @HttpCode(HttpStatus.CREATED)

@@ -69,19 +69,16 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<CurrentUserData> {
+    // Use array-form select so the password column (select:false) is reliably included.
     const user = await this.usersService.findByEmail(email, {
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        password: true,
-        googleLinked: true,
-        tokenVersion: true,
-      },
+      select: ['id', 'email', 'role', 'password', 'googleLinked', 'tokenVersion', 'isActive'],
     });
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account is inactive');
     }
     if (user.googleLinked && !user.password) {
       throw new UnauthorizedException('This account uses Google sign-in');

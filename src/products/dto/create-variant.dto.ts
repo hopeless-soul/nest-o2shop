@@ -67,7 +67,11 @@ export class CreateVariantDto {
   @Min(0)
   compareAtPrice?: number;
 
-  @ApiPropertyOptional({ minimum: 0, example: 450, description: 'Weight in grams' })
+  @ApiPropertyOptional({
+    minimum: 0,
+    example: 450,
+    description: 'Weight in grams',
+  })
   @IsOptional()
   @IsInt()
   @Min(0)

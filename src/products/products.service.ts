@@ -299,7 +299,15 @@ export class ProductsService {
     }
 
     return this.photoRepo.save(
-      this.photoRepo.create({ productId, url, altText, sortOrder, width, height, aspectRatio }),
+      this.photoRepo.create({
+        productId,
+        url,
+        altText,
+        sortOrder,
+        width,
+        height,
+        aspectRatio,
+      }),
     );
   }
 
@@ -352,7 +360,15 @@ export class ProductsService {
     }
 
     const photo = await this.photoRepo.save(
-      this.photoRepo.create({ productId, url, altText, width, height, aspectRatio, isFeatured: true }),
+      this.photoRepo.create({
+        productId,
+        url,
+        altText,
+        width,
+        height,
+        aspectRatio,
+        isFeatured: true,
+      }),
     );
 
     product.featuredPhotoId = photo.id;
@@ -508,8 +524,10 @@ export class ProductsService {
     const sizes = [...new Set(variants.map((v) => v.size))];
     const colors = [...new Set(variants.map((v) => v.colorName))];
     const options: { name: string; position: number; values: string[] }[] = [];
-    if (sizes.length > 0) options.push({ name: 'Size', position: 1, values: sizes });
-    if (colors.length > 1) options.push({ name: 'Color', position: 2, values: colors });
+    if (sizes.length > 0)
+      options.push({ name: 'Size', position: 1, values: sizes });
+    if (colors.length > 1)
+      options.push({ name: 'Color', position: 2, values: colors });
     (product as any).options = options;
 
     // Exclude featured photo from the gallery array

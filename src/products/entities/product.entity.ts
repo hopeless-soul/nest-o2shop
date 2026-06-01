@@ -89,14 +89,22 @@ export class Product {
   @Column({ nullable: true })
   primaryPhotoId: string | null;
 
-  @ManyToOne(() => ProductPhoto, { nullable: true, onDelete: 'SET NULL', eager: false })
+  @ManyToOne(() => ProductPhoto, {
+    nullable: true,
+    onDelete: 'SET NULL',
+    eager: false,
+  })
   @JoinColumn({ name: 'primaryPhotoId' })
   primaryPhoto: ProductPhoto | null;
 
   @Column({ nullable: true })
   featuredPhotoId: string | null;
 
-  @ManyToOne(() => ProductPhoto, { nullable: true, onDelete: 'SET NULL', eager: false })
+  @ManyToOne(() => ProductPhoto, {
+    nullable: true,
+    onDelete: 'SET NULL',
+    eager: false,
+  })
   @JoinColumn({ name: 'featuredPhotoId' })
   featuredPhoto: ProductPhoto | null;
 

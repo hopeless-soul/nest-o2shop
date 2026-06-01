@@ -13,8 +13,17 @@ export class AuditService {
   ) {}
 
   async findAll(query: FilterAuditLogDto): Promise<Paginated<AuditLog>> {
-    const { page, limit, entityType, entityId, changedBy, action, field, dateFrom, dateTo } =
-      query;
+    const {
+      page,
+      limit,
+      entityType,
+      entityId,
+      changedBy,
+      action,
+      field,
+      dateFrom,
+      dateTo,
+    } = query;
 
     const qb = this.auditRepo.createQueryBuilder('log');
 

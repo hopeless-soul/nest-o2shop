@@ -10,7 +10,10 @@ import {
 import { plainToInstance } from 'class-transformer';
 import { ProductsService } from './products.service';
 import { FilterProductsQueryDto } from './dto/filter-products-query.dto';
-import { ProductResponseDto, ProductListItemResponseDto } from './dto/product-response.dto';
+import {
+  ProductResponseDto,
+  ProductListItemResponseDto,
+} from './dto/product-response.dto';
 import {
   PaginatedResponseDto,
   PaginatedDto,

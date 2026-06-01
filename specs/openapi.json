@@ -4021,6 +4021,30 @@
           "Admin – Audit Log"
         ]
       }
+    },
+    "/payments/stripe/intent": {
+      "post": {
+        "operationId": "PaymentsController_createIntent",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIntentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Payments"
+        ]
+      }
     }
   },
   "info": {
@@ -7169,6 +7193,10 @@
           "limit",
           "data"
         ]
+      },
+      "CreateIntentDto": {
+        "type": "object",
+        "properties": {}
       }
     }
   }

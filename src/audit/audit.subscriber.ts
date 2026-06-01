@@ -30,7 +30,9 @@ function serializeValue(val: unknown): string | null {
   return JSON.stringify(val);
 }
 
-function flattenForDiff(entity: Record<string, unknown>): Record<string, unknown> {
+function flattenForDiff(
+  entity: Record<string, unknown>,
+): Record<string, unknown> {
   const flat: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(entity)) {
     if (
@@ -59,7 +61,9 @@ export class AuditSubscriber implements EntitySubscriberInterface {
     dataSource.subscribers.push(this);
   }
 
-  async afterInsert(event: InsertEvent<Record<string, unknown>>): Promise<void> {
+  async afterInsert(
+    event: InsertEvent<Record<string, unknown>>,
+  ): Promise<void> {
     const entityName = event.metadata?.targetName;
     if (!entityName || EXCLUDED_ENTITIES.has(entityName)) return;
 
@@ -83,13 +87,15 @@ export class AuditSubscriber implements EntitySubscriberInterface {
     );
   }
 
-  async beforeUpdate(event: UpdateEvent<Record<string, unknown>>): Promise<void> {
+  async beforeUpdate(
+    event: UpdateEvent<Record<string, unknown>>,
+  ): Promise<void> {
     const entityName = event.metadata?.targetName;
     if (!entityName || EXCLUDED_ENTITIES.has(entityName)) return;
     if (!event.entity || !event.databaseEntity) return;
 
     const entity = event.entity as Record<string, unknown>;
-    const dbEntity = event.databaseEntity as Record<string, unknown>;
+    const dbEntity = event.databaseEntity;
     const entityId = (entity.id ?? dbEntity.id) as string | undefined;
     if (!entityId) return;
 

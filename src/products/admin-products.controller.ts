@@ -43,7 +43,11 @@ import { UpdatePhotoDto } from './dto/update-photo.dto';
 import { ReorderPhotosDto } from './dto/reorder-photos.dto';
 import { AdminFilterProductsQueryDto } from './dto/admin-filter-products-query.dto';
 import { FilterReviewsQueryDto } from '../reviews/dto/filter-reviews-query.dto';
-import { AdminProductResponseDto, AdminProductListItemResponseDto, PaginatedAdminProductListItemResponseDto } from './dto/product-response.dto';
+import {
+  AdminProductResponseDto,
+  AdminProductListItemResponseDto,
+  PaginatedAdminProductListItemResponseDto,
+} from './dto/product-response.dto';
 import { ProductVariantResponseDto } from './dto/product-variant-response.dto';
 import { ProductPhotoResponseDto } from './dto/product-photo-response.dto';
 import { AdminReviewResponseDto } from '../reviews/dto/review-response.dto';
@@ -266,15 +270,23 @@ export class AdminProductsController {
     @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
     @Query('altText') altText?: string,
-    @Query('sortOrder', new ParseIntPipe({ optional: true })) sortOrder?: number,
+    @Query('sortOrder', new ParseIntPipe({ optional: true }))
+    sortOrder?: number,
   ): Promise<ProductPhotoResponseDto> {
-    const photo = await this.productsService.addPhoto(id, file, altText, sortOrder);
+    const photo = await this.productsService.addPhoto(
+      id,
+      file,
+      altText,
+      sortOrder,
+    );
     return plainToInstance(ProductPhotoResponseDto, photo, {
       excludeExtraneousValues: true,
     });
   }
 
-  @ApiOperation({ summary: 'Upload or replace the featured (brand) photo for a product' })
+  @ApiOperation({
+    summary: 'Upload or replace the featured (brand) photo for a product',
+  })
   @ApiConsumes('multipart/form-data')
   @ApiParam({ name: 'id', description: 'Product UUID' })
   @ApiQuery({
@@ -308,7 +320,11 @@ export class AdminProductsController {
     @UploadedFile() file: Express.Multer.File,
     @Query('altText') altText?: string,
   ): Promise<ProductPhotoResponseDto> {
-    const photo = await this.productsService.setFeaturedPhoto(id, file, altText);
+    const photo = await this.productsService.setFeaturedPhoto(
+      id,
+      file,
+      altText,
+    );
     return plainToInstance(ProductPhotoResponseDto, photo, {
       excludeExtraneousValues: true,
     });
