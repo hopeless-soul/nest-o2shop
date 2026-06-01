@@ -58,6 +58,7 @@ export class ProductsService {
       maxPrice,
       sortBy = 'createdAt',
       sortOrder = 'desc',
+      onSale,
     } = query;
 
     const qb = this.productRepo
@@ -107,6 +108,12 @@ export class ProductsService {
     }
     if (maxPrice !== undefined) {
       qb.andWhere('product.basePrice <= :maxPrice', { maxPrice });
+    }
+
+    if (onSale) {
+      qb.andWhere(
+        'product.compareAtPrice IS NOT NULL AND product.compareAtPrice < product.basePrice',
+      );
     }
 
     const sortColumn =

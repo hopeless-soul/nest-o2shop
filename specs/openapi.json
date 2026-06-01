@@ -1518,6 +1518,15 @@
                 "desc"
               ]
             }
+          },
+          {
+            "name": "onSale",
+            "required": false,
+            "in": "query",
+            "description": "Return only products with compareAtPrice set above basePrice",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -1717,6 +1726,15 @@
                 "asc",
                 "desc"
               ]
+            }
+          },
+          {
+            "name": "onSale",
+            "required": false,
+            "in": "query",
+            "description": "Return only products with compareAtPrice set above basePrice",
+            "schema": {
+              "type": "boolean"
             }
           },
           {
