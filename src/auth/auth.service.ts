@@ -12,7 +12,7 @@ import {
   Tokens,
 } from './types';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { CreateLocalUserDto } from '../users/dto/create-local-user.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -26,6 +26,7 @@ export class AuthService {
   constructor(
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepo: Repository<RefreshToken>,
+    private readonly dataSource: DataSource,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -206,19 +207,16 @@ export class AuthService {
     userId: string,
     refreshTokenId: string,
   ): Promise<void> {
-    await this.refreshTokenRepo.delete({ userId });
-
     const ttl = parseInt(
       this.configService.getOrThrow('JWT_REFRESH_TOKEN_TTL'),
     );
     const expiresAt = new Date(Date.now() + ttl * 1000);
 
-    await this.refreshTokenRepo.save(
-      this.refreshTokenRepo.create({
-        userId,
-        tokenId: refreshTokenId,
-        expiresAt,
-      }),
-    );
+    await this.dataSource.transaction(async (em) => {
+      await em.delete(RefreshToken, { userId });
+      await em.save(
+        em.create(RefreshToken, { userId, tokenId: refreshTokenId, expiresAt }),
+      );
+    });
   }
 }

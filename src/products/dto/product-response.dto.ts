@@ -143,6 +143,11 @@ export class ProductResponseDto {
   @Type(() => ProductPhotoSummaryDto)
   primaryPhoto: ProductPhotoSummaryDto | null;
 
+  @ApiPropertyOptional({ type: () => ProductPhotoSummaryDto, nullable: true })
+  @Expose()
+  @Type(() => ProductPhotoSummaryDto)
+  featuredPhoto: ProductPhotoSummaryDto | null;
+
   @ApiProperty({ type: () => ProductPhotoResponseDto, isArray: true })
   @Expose()
   @Type(() => ProductPhotoResponseDto)
@@ -210,6 +215,11 @@ export class ProductListItemResponseDto {
   @Expose()
   @Type(() => ProductPhotoSummaryDto)
   primaryPhoto: ProductPhotoSummaryDto | null;
+
+  @ApiPropertyOptional({ type: () => ProductPhotoSummaryDto, nullable: true })
+  @Expose()
+  @Type(() => ProductPhotoSummaryDto)
+  featuredPhoto: ProductPhotoSummaryDto | null;
 
   @ApiProperty({ type: () => ProductPhotoResponseDto, isArray: true })
   @Expose()

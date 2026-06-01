@@ -8,6 +8,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtRefreshAuthGuard } from './jwt-refresh-auth.guard';
 import { AUTH_TYPE_KEY } from '../decorators/auth.decorator';
 import { LocalAuthGuard } from './local-auth.guard';
 
@@ -43,12 +44,14 @@ export class AuthenticationGuard implements CanActivate {
     private reflector: Reflector,
     private localAuthGuard: LocalAuthGuard,
     private jwtAuthGuard: JwtAuthGuard,
+    private jwtRefreshAuthGuard: JwtRefreshAuthGuard,
     private googleAuthGuard: GoogleAuthGuard,
   ) {
     this.authTypeGuardMap = {
       [AuthType.Local]: this.localAuthGuard,
       [AuthType.Bearer]: this.jwtAuthGuard,
       [AuthType.Google]: this.googleAuthGuard,
+      [AuthType.Refresh]: this.jwtRefreshAuthGuard,
       [AuthType.None]: { canActivate: () => true },
     };
   }

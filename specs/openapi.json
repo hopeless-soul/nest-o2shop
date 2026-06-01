@@ -5013,6 +5013,15 @@
               }
             ]
           },
+          "featuredPhoto": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
+              }
+            ]
+          },
           "photos": {
             "type": "array",
             "items": {
@@ -5260,6 +5269,15 @@
               }
             ]
           },
+          "featuredPhoto": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
+              }
+            ]
+          },
           "photos": {
             "type": "array",
             "items": {
@@ -5354,6 +5372,15 @@
             "example": 4.5
           },
           "primaryPhoto": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
+              }
+            ]
+          },
+          "featuredPhoto": {
             "nullable": true,
             "type": "object",
             "allOf": [
@@ -5590,6 +5617,15 @@
             "type": "string"
           },
           "primaryPhoto": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductPhotoSummaryDto"
+              }
+            ]
+          },
+          "featuredPhoto": {
             "nullable": true,
             "type": "object",
             "allOf": [

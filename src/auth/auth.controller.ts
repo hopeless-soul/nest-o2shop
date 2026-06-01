@@ -8,7 +8,6 @@ import {
   Post,
   Req,
   Res,
-  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -27,7 +26,6 @@ import { Auth } from './decorators/auth.decorator';
 import { AuthType } from './enums/auth-type.enum';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { CreateLocalUserDto } from '../users/dto/create-local-user.dto';
 import { ErrorResponseDto } from '../common/dto/error-response.dto';
 import { UserResponseDto } from '../users/dto/user-response.dto';
@@ -38,7 +36,6 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
-    private readonly jwtService: JwtService,
   ) {}
 
   @ApiOperation({
@@ -118,29 +115,15 @@ export class AuthController {
     description: 'Missing, expired, or already-used refresh token',
   })
   @Post('refresh')
-  @Auth(AuthType.None)
+  @Auth(AuthType.Refresh)
   @HttpCode(HttpStatus.OK)
   async refresh(
-    @Req() request: Request,
+    @Req() request: Request & { user: RefreshTokenPayload },
     @Res({ passthrough: true }) response: Response,
   ): Promise<Tokens> {
-    const token = (request.cookies as Record<string, string | undefined>)[
-      'refresh_token'
-    ];
-    if (!token) throw new UnauthorizedException('No refresh token');
-
-    let payload: RefreshTokenPayload;
-    try {
-      payload = await this.jwtService.verifyAsync<RefreshTokenPayload>(token, {
-        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
-      });
-    } catch {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
     const tokens = await this.authService.refreshTokens(
-      payload.sub,
-      payload.refresh_token_id,
+      request.user.sub,
+      request.user.refresh_token_id,
     );
     this.setTokenCookies(response, tokens);
     return tokens;
@@ -197,6 +180,7 @@ export class AuthController {
       httpOnly: true,
       secure: this.configService.get('NODE_ENV') === 'production',
       sameSite: 'lax',
+      path: '/auth/refresh',
       expires: new Date(
         now.getTime() +
           parseInt(this.configService.getOrThrow('JWT_REFRESH_TOKEN_TTL')) *
