@@ -15,6 +15,7 @@ import { OrdersModule } from './orders/orders.module';
 import { MeModule } from './me/me.module';
 import { ClsModule } from 'nestjs-cls';
 import { AuditModule } from './audit/audit.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AuditModule } from './audit/audit.module';
     OrdersModule,
     MeModule,
     AuditModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
