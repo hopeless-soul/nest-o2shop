@@ -99,6 +99,10 @@ export class AdminOrderResponseDto extends OrderResponseDto {
   @Expose()
   paymentProviderRef?: string;
 
+  @ApiProperty({ type: [String] })
+  @Expose()
+  notes: string[];
+
   @ApiProperty()
   @Expose()
   updatedAt: Date;

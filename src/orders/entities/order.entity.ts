@@ -100,6 +100,9 @@ export class Order {
   @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
   items: OrderItem[];
 
+  @Column({ type: 'jsonb', default: '[]' })
+  notes: string[];
+
   @CreateDateColumn()
   createdAt: Date;
 

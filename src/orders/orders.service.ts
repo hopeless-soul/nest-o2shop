@@ -9,10 +9,13 @@ import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { UpdateRecipientDto } from './dto/update-recipient.dto';
+import { AddNoteDto } from './dto/add-note.dto';
 import { FilterOrdersQueryDto } from './dto/filter-orders-query.dto';
 import { ShippingService } from '../shipping/shipping.service';
 import { CurrentUserData } from '../auth/types';
 import { ProductVariant } from '../products/entities/product-variant.entity';
+import { User } from '../users/entities/user.entity';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { Paginated } from '../common/dto/paginated-response.dto';
 
@@ -23,6 +26,8 @@ export class OrdersService {
     private readonly orderRepo: Repository<Order>,
     @InjectRepository(OrderItem)
     private readonly orderItemRepo: Repository<OrderItem>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     @InjectDataSource()
     private readonly dataSource: DataSource,
     private readonly shippingService: ShippingService,
@@ -201,5 +206,41 @@ export class OrdersService {
     if (!order) throw new NotFoundException(`Order #${id} not found`);
     Object.assign(order, dto);
     return this.orderRepo.save(order);
+  }
+
+  async updateRecipient(id: string, dto: UpdateRecipientDto): Promise<Order> {
+    const order = await this.orderRepo.findOne({
+      where: { id },
+      relations: { items: true, user: true },
+    });
+    if (!order) throw new NotFoundException(`Order #${id} not found`);
+
+    if (dto.email !== undefined && dto.email !== order.email) {
+      const user = await this.userRepo.findOne({ where: { email: dto.email } });
+      order.userId = user?.id ?? undefined;
+      order.user = user ?? undefined;
+      order.email = dto.email;
+    }
+
+    if (dto.firstName !== undefined) order.firstName = dto.firstName;
+    if (dto.lastName !== undefined) order.lastName = dto.lastName;
+    if (dto.shippingAddress !== undefined) order.shippingAddress = dto.shippingAddress;
+    if (dto.billingAddress !== undefined) order.billingAddress = dto.billingAddress;
+
+    return this.orderRepo.save(order);
+  }
+
+  async getNotes(id: string): Promise<string[]> {
+    const order = await this.orderRepo.findOne({ where: { id }, select: { id: true, notes: true } });
+    if (!order) throw new NotFoundException(`Order #${id} not found`);
+    return order.notes;
+  }
+
+  async addNote(id: string, dto: AddNoteDto): Promise<string[]> {
+    const order = await this.orderRepo.findOne({ where: { id }, select: { id: true, notes: true } });
+    if (!order) throw new NotFoundException(`Order #${id} not found`);
+    order.notes = [...order.notes, dto.note];
+    await this.orderRepo.save(order);
+    return order.notes;
   }
 }

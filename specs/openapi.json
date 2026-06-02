@@ -3786,6 +3786,196 @@
         ]
       }
     },
+    "/admin/orders/{id}/recipient": {
+      "patch": {
+        "operationId": "AdminOrdersController_updateRecipient",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRecipientDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminOrderResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update recipient info (email, name, addresses) of an order",
+        "tags": [
+          "Admin – Orders"
+        ]
+      }
+    },
+    "/admin/orders/{id}/notes": {
+      "get": {
+        "operationId": "AdminOrdersController_getNotes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "notes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get all notes for an order",
+        "tags": [
+          "Admin – Orders"
+        ]
+      },
+      "post": {
+        "operationId": "AdminOrdersController_addNote",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddNoteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "notes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Append a note to an order",
+        "tags": [
+          "Admin – Orders"
+        ]
+      }
+    },
     "/me": {
       "get": {
         "operationId": "MeController_getProfile",
@@ -7042,6 +7232,12 @@
           "paymentProviderRef": {
             "type": "string"
           },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "updatedAt": {
             "format": "date-time",
             "type": "string"
@@ -7061,6 +7257,7 @@
           "billingAddress",
           "items",
           "createdAt",
+          "notes",
           "updatedAt"
         ]
       },
@@ -7111,6 +7308,43 @@
             ]
           }
         }
+      },
+      "UpdateRecipientDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "new@example.com"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Jane"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "shippingAddress": {
+            "$ref": "#/components/schemas/AddressDto"
+          },
+          "billingAddress": {
+            "$ref": "#/components/schemas/AddressDto"
+          }
+        }
+      },
+      "AddNoteDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "example": "Called customer to confirm address.",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "note"
+        ]
       },
       "PaginatedOrderResponseDto": {
         "type": "object",

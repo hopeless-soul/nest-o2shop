@@ -7,10 +7,11 @@ import { OrdersController } from './orders.controller';
 import { AdminOrdersController } from './admin-orders.controller';
 import { ShippingModule } from '../shipping/shipping.module';
 import { ProductsModule } from '../products/products.module';
+import { User } from '../users/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem]),
+    TypeOrmModule.forFeature([Order, OrderItem, User]),
     ShippingModule,
     ProductsModule,
   ],
