@@ -13,5 +13,5 @@ export const databaseConfig = (
   database: config.get<string>('DB_NAME'),
   entities: [User],
   autoLoadEntities: true,
-  synchronize: true, // dev only
+  synchronize: false,
 });
