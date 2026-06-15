@@ -3,6 +3,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUrl,
   Max,
   Min,
 } from 'class-validator';
@@ -32,6 +33,6 @@ export class CreateReviewDto {
     example: ['https://example.com/photo.jpg'],
   })
   @IsOptional()
-  @IsString({ each: true })
+  @IsUrl({}, { each: true })
   photoUrls?: string[];
 }

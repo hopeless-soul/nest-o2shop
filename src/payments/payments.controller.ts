@@ -23,7 +23,10 @@ export class PaymentsController {
   @Post('stripe/guest-intent')
   @Auth(AuthType.None)
   async createGuestIntent(@Body() dto: CreateGuestIntentDto) {
-    return this.paymentsService.createGuestPaymentIntent(dto.orderId, dto.email);
+    return this.paymentsService.createGuestPaymentIntent(
+      dto.orderId,
+      dto.email,
+    );
   }
 
   @Post('stripe/webhook')

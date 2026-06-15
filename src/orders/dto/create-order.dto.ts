@@ -5,6 +5,7 @@ import {
   IsEmail,
   IsOptional,
   IsString,
+  IsUUID,
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -32,7 +33,7 @@ export class CreateOrderDto {
   lastName?: string;
 
   @ApiProperty({ format: 'uuid', description: 'ID from GET /shipping-methods' })
-  @IsString()
+  @IsUUID()
   shippingMethodId: string;
 
   @ApiProperty({ type: () => AddressDto })

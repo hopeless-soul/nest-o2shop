@@ -167,7 +167,8 @@ export class UsersService {
   async updateAdmin(id: string, dto: UpdateAdminUserDto): Promise<User> {
     const user = await this.findByIdAdmin(id);
     if (dto.email !== undefined) user.email = dto.email;
-    if (dto.displayName !== undefined) user.displayName = dto.displayName || undefined;
+    if (dto.displayName !== undefined)
+      user.displayName = dto.displayName || undefined;
     if (dto.password !== undefined) {
       user.password = await this.hashingService.hash(dto.password);
     }
@@ -182,9 +183,8 @@ export class UsersService {
   }
 
   async softDeleteAdmin(id: string): Promise<void> {
-    const user = await this.findByIdAdmin(id);
-    user.deletedAt = new Date();
-    await this.userRepository.save(user);
+    await this.findByIdAdmin(id);
+    await this.userRepository.softDelete(id);
   }
 
   async findByEmail(

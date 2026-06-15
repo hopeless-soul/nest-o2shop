@@ -227,20 +227,28 @@ export class OrdersService {
 
     if (dto.firstName !== undefined) order.firstName = dto.firstName;
     if (dto.lastName !== undefined) order.lastName = dto.lastName;
-    if (dto.shippingAddress !== undefined) order.shippingAddress = dto.shippingAddress;
-    if (dto.billingAddress !== undefined) order.billingAddress = dto.billingAddress;
+    if (dto.shippingAddress !== undefined)
+      order.shippingAddress = dto.shippingAddress;
+    if (dto.billingAddress !== undefined)
+      order.billingAddress = dto.billingAddress;
 
     return this.orderRepo.save(order);
   }
 
   async getNotes(id: string): Promise<string[]> {
-    const order = await this.orderRepo.findOne({ where: { id }, select: { id: true, notes: true } });
+    const order = await this.orderRepo.findOne({
+      where: { id },
+      select: { id: true, notes: true },
+    });
     if (!order) throw new NotFoundException(`Order #${id} not found`);
     return order.notes;
   }
 
   async addNote(id: string, dto: AddNoteDto): Promise<string[]> {
-    const order = await this.orderRepo.findOne({ where: { id }, select: { id: true, notes: true } });
+    const order = await this.orderRepo.findOne({
+      where: { id },
+      select: { id: true, notes: true },
+    });
     if (!order) throw new NotFoundException(`Order #${id} not found`);
     order.notes = [...order.notes, dto.note];
     await this.orderRepo.save(order);

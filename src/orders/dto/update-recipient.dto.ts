@@ -1,10 +1,5 @@
 import { Type } from 'class-transformer';
-import {
-  IsEmail,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { IsEmail, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { AddressDto } from '../../addresses/dto/address.dto';
 
