@@ -1,5 +1,6 @@
 /// <reference types="multer" />
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -273,6 +274,7 @@ export class AdminProductsController {
     @Query('sortOrder', new ParseIntPipe({ optional: true }))
     sortOrder?: number,
   ): Promise<ProductPhotoResponseDto> {
+    if (!file) throw new BadRequestException('No valid image file provided');
     const photo = await this.productsService.addPhoto(
       id,
       file,
@@ -320,6 +322,7 @@ export class AdminProductsController {
     @UploadedFile() file: Express.Multer.File,
     @Query('altText') altText?: string,
   ): Promise<ProductPhotoResponseDto> {
+    if (!file) throw new BadRequestException('No valid image file provided');
     const photo = await this.productsService.setFeaturedPhoto(
       id,
       file,

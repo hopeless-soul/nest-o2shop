@@ -112,7 +112,7 @@ export class ProductsService {
 
     if (onSale) {
       qb.andWhere(
-        'product.compareAtPrice IS NOT NULL AND product.compareAtPrice < product.basePrice',
+        'product.compareAtPrice IS NOT NULL AND product.compareAtPrice > product.basePrice',
       );
     }
 
