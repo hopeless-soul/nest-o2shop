@@ -4236,6 +4236,30 @@
         ]
       }
     },
+    "/payments/stripe/guest-intent": {
+      "post": {
+        "operationId": "PaymentsController_createGuestIntent",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGuestIntentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Payments"
+        ]
+      }
+    },
     "/payments/stripe/webhook": {
       "post": {
         "operationId": "PaymentsController_stripeWebhook",
@@ -7466,6 +7490,10 @@
         ]
       },
       "CreateIntentDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateGuestIntentDto": {
         "type": "object",
         "properties": {}
       }

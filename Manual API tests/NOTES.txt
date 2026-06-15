@@ -1,5 +1,0 @@
-NOTES:
-- Everything related to prices returns as string instead on numbers
-- POST {{baseUrl}}/orders request DTO has weird prop names
-- POST {{baseUrl}}/orders failed request
-- POST http://localhost:3001/orders/O2SHOP-000003 example says "totalAmount", "shippingPrice", "productPrice" and "total" will be numbers but returns strings.

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import Stripe from 'stripe';
 import { Order } from '../orders/entities/order.entity';
 import { PaymentStatus } from '../orders/enums/payment-status.enum';
@@ -26,22 +26,39 @@ export class PaymentsService {
     });
   }
 
-  async createPaymentIntent(orderId: string): Promise<{ clientSecret: string }> {
+  async createPaymentIntent(orderId: string, userId: string): Promise<{ clientSecret: string }> {
     const order = await this.orderRepo.findOne({ where: { id: orderId } });
-    if (!order) {
-      throw new NotFoundException(`Order ${orderId} not found`);
+    if (!order || order.userId !== userId) {
+      throw new NotFoundException('Order not found');
     }
     if (order.paymentStatus === PaymentStatus.PAID) {
       throw new BadRequestException('Order is already paid');
     }
 
+    return this.buildPaymentIntent(order);
+  }
+
+  async createGuestPaymentIntent(orderId: string, email: string): Promise<{ clientSecret: string }> {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId, email, userId: IsNull() },
+    });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      throw new BadRequestException('Order is already paid');
+    }
+
+    return this.buildPaymentIntent(order);
+  }
+
+  private async buildPaymentIntent(order: Order): Promise<{ clientSecret: string }> {
     try {
-      // Stripe requires amounts in the smallest currency unit (cents for USD)
       const intent = await this.stripe.paymentIntents.create({
         amount: Math.round(order.totalAmount * 100),
         currency: order.totalCurrency,
         automatic_payment_methods: { enabled: true },
-        metadata: { orderId },
+        metadata: { orderId: order.id },
       });
 
       order.paymentProviderRef = intent.id;

@@ -37,6 +37,9 @@ export class OrdersService {
     dto: CreateOrderDto,
     currentUser?: CurrentUserData,
   ): Promise<Order> {
+    if (!currentUser && !dto.email) {
+      throw new BadRequestException('email is required for guest checkout');
+    }
     return this.dataSource.transaction(async (manager) => {
       const orderRepo = manager.getRepository(Order);
       const variantRepo = manager.getRepository(ProductVariant);
