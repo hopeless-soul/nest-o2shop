@@ -1,98 +1,203 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# nest-o2shop
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> **Learning Project** — This is a personal pet project built for learning purposes only. It is not intended for production use.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+A fully-featured e-commerce REST API built with **NestJS**, demonstrating real-world patterns: 
+- Modular architecture
+- JWT + Google OAuth authentication 
+- Role-based access control
+- Order management with stock locking
+- Swagger-documented API.
 
-## Description
+![Swagger UI](docs/nest-o2shop-swagger.png)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## Technology Stack
 
-```bash
-$ pnpm install
+| Layer | Technology |
+|---|---|
+| Package manager | pnpm |
+| Runtime | Node.js 22 |
+| Framework | NestJS 11 |
+| Language | TypeScript 5.7 |
+| ORM | TypeORM 1.x |
+| Database | PostgreSQL 17 |
+| Validation | class-validator + class-transformer |
+| Password hashing | bcrypt |
+| Auth | Passport.js — Local, JWT, Google OAuth 2.0 |
+| API Docs | Swagger / OpenAPI (via `@nestjs/swagger`) |
+| Containerisation | Docker + Docker Compose |
+
+---
+
+## Architecture
+
+The project follows NestJS's modular feature architecture. Each domain is self-contained with its own entity, service, controller(s), DTOs, and module file.
+
+```
+Request → AuthenticationGuard → RolesGuard → Controller → Service → TypeORM → PostgreSQL
 ```
 
-## Compile and run the project
+### Module overview
+
+| Module | Responsibility |
+|---|---|
+| `AuthModule` | Local/JWT/Google auth, token issuance & refresh, logout |
+| `UsersModule` | User CRUD, admin management, guest-data linking on registration |
+| `ProductsModule` | Product catalogue, variants, photos, admin CRUD, soft-delete |
+| `CollectionsModule` | Product collections (active/inactive) |
+| `CategoriesModule` | Categories and subcategories |
+| `ReviewsModule` | Public submission, admin moderation, status lifecycle |
+| `OrdersModule` | Guest & authenticated checkout with pessimistic stock locking |
+| `ShippingModule` | Shipping method management |
+| `AddressesModule` | Saved shipping/billing addresses per user |
+| `MeModule` | Authenticated user profile, orders, and addresses |
+| `StorageModule` | Abstract file storage — local by default, easily swappable for S3 |
+| `HashingModule` | Abstract hashing — bcrypt by default |
+| `DatabaseModule` | TypeORM async configuration |
+
+### Authentication flow
+
+- **Local** — `POST /auth/login` validates credentials, issues an access + refresh token pair as HttpOnly cookies and in the response body
+- **JWT** — every protected route runs `JwtStrategy`, which verifies the token and checks `tokenVersion` to support global invalidation
+- **Google OAuth** — `GET /auth/google/login` redirects to Google; on return, the callback issues tokens the same way as local login
+
+Access tokens carry `tokenVersion` for global invalidation on logout. Refresh tokens are stored server-side with rotation.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- **Node.js** ≥ 22
+- **pnpm** ≥ 10 (`corepack enable && corepack prepare pnpm@latest-10 --activate`)
+- **Docker** + **Docker Compose** (for the database)
+- A Google OAuth app (optional — only needed for Google login)
+
+### 1. Installation
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm install
 ```
 
-## Run tests
+### 2. Configure environment
+
+Create a `.env` file in the project root:
+
+```env
+# Environment
+NODE_ENV=development
+
+# Database
+# Note: docker-compose overrides DB_HOST to "postgres" inside the container
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=
+DB_PASSWORD=
+DB_NAME=
+
+# JWT
+JWT_SECRET=
+JWT_REFRESH_SECRET=
+JWT_ACCESS_TOKEN_TTL=3600    # 1 hour
+JWT_REFRESH_TOKEN_TTL=86400  # 24 hours
+
+# Google OAuth (optional — only needed for Google login)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=http://localhost:3001/auth/google/redirect
+
+# Rate limiting (TTL in milliseconds)
+THROTTLE_DEFAULT_LIMIT=60
+THROTTLE_DEFAULT_TTL=60000
+THROTTLE_AUTH_LIMIT=5
+THROTTLE_AUTH_TTL=60000
+
+# Stripe
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+```
+
+### 3. Start with Docker Compose (recommended)
+
+This starts both Postgres and the NestJS app with hot-reload:
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+docker compose up
 ```
 
-## Deployment
+The API will be available at `http://localhost:3001`.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### 4. Start locally (app only)
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+If you prefer to run Postgres separately:
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+# Start only the database
+docker compose up postgres
+
+# Run the app in watch mode
+pnpm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## Key Features
 
-Check out a few resources that may come in handy when working with NestJS:
+- **Dual-surface controllers** — every resource has a public/customer controller and an `admin/` controller with full CRUD and extra filters
+- **Role-based access control** — `@Auth(AuthType.Bearer)` + `@Roles(Role.ADMIN)` applied via global guards
+- **Google OAuth 2.0** — sign-in creates or links accounts automatically
+- **Guest checkout** — orders can be placed without an account; orders and reviews are retroactively linked on registration
+- **Pessimistic stock locking** — order creation acquires a `SELECT ... FOR UPDATE` lock to prevent overselling
+- **Soft-delete** — products and users support soft-delete with admin-only `includeDeleted` filter
+- **Structured product descriptions** — JSONB `blocks` field supports `text` and `points` block types
+- **Paginated responses** — all list endpoints use a consistent `{ data, total, page, limit }` envelope
+- **Local file storage** — uploaded product photos are served from `/uploads`. The `StorageService` is abstract; swapping to AWS S3 only requires providing an alternative implementation — see [Swapping to S3](#-swapping-to-s3)
+- **OpenAPI spec export** — on startup the full spec is written to `specs/openapi.json`
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## API Documentation
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Swagger UI is served at:
 
-## Stay in touch
+```
+http://localhost:3001/api/docs
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+The OpenAPI JSON spec is written to `specs/openapi.json` on every startup.
+
+**Auth in Swagger:** use `POST /auth/login` to get an `access_token`, then click **Authorize** and paste it into the `access_token` bearer field.
+
+---
+
+## Swapping to S3
+
+Media files are currently stored on disk via `LocalStorageService`. Because storage is abstracted behind `StorageService` (an abstract class injected globally), switching to AWS S3 requires only:
+
+1. Install the AWS SDK: `pnpm add @aws-sdk/client-s3`
+2. Create `src/common/storage/s3-storage.service.ts` that extends `StorageService` and implements `save()`, `delete()`, and `getUrl()`
+3. In `StorageModule`, change `useClass: LocalStorageService` to `useClass: S3StorageService`
+
+No other code needs to change.
+
+---
+
+## Scripts
+
+```bash
+pnpm run start:dev     # Watch mode (hot-reload)
+pnpm run start:debug   # Watch + Node inspector
+pnpm run build         # Compile to /dist
+pnpm run start:prod    # Run compiled output
+pnpm run lint          # ESLint with auto-fix
+pnpm run format        # Prettier format
+```
+
+---
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+UNLICENSED — personal learning project, not for redistribution.
