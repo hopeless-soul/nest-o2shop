@@ -61,6 +61,7 @@ import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/enums/role.enum';
+import { SkipThrottle } from '@nestjs/throttler';
 
 const ALLOWED_IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 
@@ -75,6 +76,8 @@ const imageFileFilter = (
   );
 };
 
+// Admin backoffice — exempt from rate limiting
+@SkipThrottle()
 @ApiTags('Admin – Products')
 @ApiBearerAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })

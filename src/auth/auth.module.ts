@@ -18,6 +18,7 @@ import { AuthenticationGuard } from './guards/authentication.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { APP_GUARD } from '@nestjs/core';
     LocalStrategy,
     { provide: APP_GUARD, useClass: AuthenticationGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: ThrottlerGuard }, // Listed last so auth context is populated before throttle check runs
   ],
 })
 export class AuthModule {}

@@ -9,10 +9,22 @@ import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    rawBody: true,
+    rawBody: true, // is required for the Stripe webhook.
   });
 
+  // Cookie Parser Setup
   app.use(cookieParser());
+
+  // Global Validation Pipe Setup
+  app.useGlobalPipes(
+    new ValidationPipe({ 
+      whitelist: true, 
+      transform: true,
+      forbidNonWhitelisted: true,  
+    })
+  );
+
+  // CORS Setup
   app.enableCors({
     origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
     credentials: true,
@@ -20,11 +32,11 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useStaticAssets(path.join(process.cwd(), 'uploads'), {
     prefix: '/uploads',
   });
 
+  
   const config = new DocumentBuilder()
     .setTitle('O2Shop API')
     .setDescription(
@@ -75,6 +87,7 @@ async function bootstrap() {
     customSiteTitle: 'O2Shop API Docs',
   });
 
+  // Write OpenAPI JSON
   const specsDir = path.join(process.cwd(), 'specs');
   fs.mkdirSync(specsDir, { recursive: true });
   fs.writeFileSync(
@@ -82,7 +95,8 @@ async function bootstrap() {
     JSON.stringify(document, null, 2),
   );
 
-  await app.listen(3001);
-  console.log('API docs: http://localhost:3001/api/docs');
+  // Listen App
+  await app.listen(process.env.PORT ?? 3001);
+  console.log(`API docs: http://localhost:${process.env.PORT ?? 3001}/api/docs`);
 }
 void bootstrap();

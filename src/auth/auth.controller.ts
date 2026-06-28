@@ -24,6 +24,7 @@ import type { CurrentUserData, RefreshTokenPayload, Tokens } from './types';
 import { AuthService } from './auth.service';
 import { Auth } from './decorators/auth.decorator';
 import { AuthType } from './enums/auth-type.enum';
+import { SkipThrottle } from '@nestjs/throttler';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { ConfigService } from '@nestjs/config';
 import { CreateLocalUserDto } from '../users/dto/create-local-user.dto';
@@ -31,6 +32,8 @@ import { ErrorResponseDto } from '../common/dto/error-response.dto';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 
 @ApiTags('Auth')
+// Default throttler applies to the whole controller; login and register override to auth throttler below
+@SkipThrottle({ auth: true })
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -55,6 +58,8 @@ export class AuthController {
     description:
       'Handles redirect from Google. Sets access_token and refresh_token as HttpOnly cookies, then redirects to /.',
   })
+  // OAuth callback is initiated by Google's servers, not the user — exempt from rate limits
+  @SkipThrottle()
   @Get('google/redirect')
   @Auth(AuthType.Google)
   async googleCallback(
@@ -88,6 +93,8 @@ export class AuthController {
     },
   })
   @ApiUnauthorizedResponse({ description: 'Invalid email or password' })
+  // Skip "default"; Use the strict "auth" throttler (skips the lenient "default" one)
+  @SkipThrottle({ default: true })
   @Post('login')
   @Auth(AuthType.Local)
   @HttpCode(HttpStatus.OK)
@@ -139,6 +146,8 @@ export class AuthController {
     type: ErrorResponseDto,
     description: 'Validation error or email already in use',
   })
+  // Use the strict "auth" throttler (skips the lenient "default" one)
+  @SkipThrottle({ default: true })
   @Post('register')
   @Auth(AuthType.None)
   @HttpCode(HttpStatus.CREATED)

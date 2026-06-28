@@ -38,7 +38,9 @@ import { AuthType } from '../auth/enums/auth-type.enum';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { ErrorResponseDto } from '../common/dto/error-response.dto';
 import type { CurrentUserData } from '../auth/types';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle({ auth: true })
 @ApiTags('Reviews')
 @Controller()
 export class ReviewsController {

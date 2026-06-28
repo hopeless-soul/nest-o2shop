@@ -16,7 +16,9 @@ import {
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle({ auth: true })
 @ApiTags('Collections')
 @Controller('collections')
 export class CollectionsController {

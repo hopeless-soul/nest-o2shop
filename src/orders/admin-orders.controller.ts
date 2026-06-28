@@ -36,7 +36,10 @@ import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/enums/role.enum';
+import { SkipThrottle } from '@nestjs/throttler';
 
+// Admin backoffice — exempt from rate limiting
+@SkipThrottle()
 @ApiTags('Admin – Orders')
 @ApiBearerAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })

@@ -4,9 +4,12 @@ import { CreateIntentDto } from './dto/create-intent.dto';
 import { CreateGuestIntentDto } from './dto/create-guest-intent.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
+import { SkipThrottle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { CurrentUserData } from '../auth/types';
 
+// Auth throttler not relevant for payment endpoints; use the default rate limit
+@SkipThrottle({ auth: true })
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
@@ -29,6 +32,8 @@ export class PaymentsController {
     );
   }
 
+  // Stripe sends webhooks from their own servers — exempt from all rate limits
+  @SkipThrottle()
   @Post('stripe/webhook')
   @Auth(AuthType.None)
   async stripeWebhook(

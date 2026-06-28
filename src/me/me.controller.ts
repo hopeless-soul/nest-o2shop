@@ -22,7 +22,9 @@ import { Auth } from '../auth/decorators/auth.decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { CurrentUserData } from '../auth/types';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle({ auth: true })
 @ApiTags('Me')
 @ApiBearerAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
