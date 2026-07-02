@@ -11,6 +11,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtRefreshAuthGuard } from './jwt-refresh-auth.guard';
 import { AUTH_TYPE_KEY } from '../decorators/auth.decorator';
 import { LocalAuthGuard } from './local-auth.guard';
+import { OptionalJwtAuthGuard } from './optional-jwt-auth.guard';
 
 /**
  * A general authentication guard for the app. AuthenticationGuard orchestrates authentication
@@ -46,6 +47,7 @@ export class AuthenticationGuard implements CanActivate {
     private jwtAuthGuard: JwtAuthGuard,
     private jwtRefreshAuthGuard: JwtRefreshAuthGuard,
     private googleAuthGuard: GoogleAuthGuard,
+    private optionalJwtAuthGuard: OptionalJwtAuthGuard,
   ) {
     this.authTypeGuardMap = {
       [AuthType.Local]: this.localAuthGuard,
@@ -53,6 +55,7 @@ export class AuthenticationGuard implements CanActivate {
       [AuthType.Google]: this.googleAuthGuard,
       [AuthType.Refresh]: this.jwtRefreshAuthGuard,
       [AuthType.None]: { canActivate: () => true },
+      [AuthType.OptionalBearer]: this.optionalJwtAuthGuard,
     };
   }
 

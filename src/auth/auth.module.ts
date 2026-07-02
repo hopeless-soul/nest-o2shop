@@ -11,6 +11,7 @@ import { GoogleStrategy, JwtStrategy } from './strategies';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from './guards/optional-jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { LocalStrategy } from './strategies/local.strategy';
 import { HashingModule } from '../common/hashing/hashing.module';
@@ -38,6 +39,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
     GoogleAuthGuard,
     JwtStrategy,
     JwtAuthGuard,
+    OptionalJwtAuthGuard,
     JwtRefreshStrategy,
     JwtRefreshAuthGuard,
     LocalAuthGuard,

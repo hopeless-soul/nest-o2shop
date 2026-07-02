@@ -12,6 +12,19 @@ import Stripe from 'stripe';
 import { Order } from '../orders/entities/order.entity';
 import { PaymentStatus } from '../orders/enums/payment-status.enum';
 
+type StripePaymentIntent = Awaited<
+  ReturnType<Stripe.Stripe['paymentIntents']['retrieve']>
+>;
+
+// PaymentIntent statuses that can still be confirmed/paid by the customer.
+const REUSABLE_INTENT_STATUSES: ReadonlySet<StripePaymentIntent['status']> =
+  new Set([
+    'requires_payment_method',
+    'requires_confirmation',
+    'requires_action',
+    'processing',
+  ]);
+
 @Injectable()
 export class PaymentsService {
   private readonly stripe: Stripe.Stripe;
@@ -65,6 +78,11 @@ export class PaymentsService {
     order: Order,
   ): Promise<{ clientSecret: string }> {
     try {
+      const reusable = await this.getReusablePaymentIntent(order);
+      if (reusable) {
+        return { clientSecret: reusable.client_secret! };
+      }
+
       const intent = await this.stripe.paymentIntents.create({
         amount: Math.round(order.totalAmount * 100),
         currency: order.totalCurrency,
@@ -85,6 +103,43 @@ export class PaymentsService {
       }
       throw new InternalServerErrorException('Payment processing failed');
     }
+  }
+
+  // Reuses the order's existing PaymentIntent when it's still payable, instead of
+  // minting a new one on every call. Otherwise a repeat call (page refresh, retry,
+  // duplicate form submit) overwrites paymentProviderRef with a fresh, unpaid intent
+  // id — orphaning the intent the customer actually confirms, so the webhook can
+  // never find the order and the order is stuck at PENDING despite a successful charge.
+  private async getReusablePaymentIntent(
+    order: Order,
+  ): Promise<StripePaymentIntent | null> {
+    if (!order.paymentProviderRef) {
+      return null;
+    }
+
+    let existing: StripePaymentIntent;
+    try {
+      existing = await this.stripe.paymentIntents.retrieve(
+        order.paymentProviderRef,
+      );
+    } catch {
+      return null;
+    }
+
+    const amountMatches =
+      existing.amount === Math.round(order.totalAmount * 100);
+    const currencyMatches =
+      existing.currency === order.totalCurrency.toLowerCase();
+
+    if (
+      amountMatches &&
+      currencyMatches &&
+      REUSABLE_INTENT_STATUSES.has(existing.status)
+    ) {
+      return existing;
+    }
+
+    return null;
   }
 
   async handleWebhookEvent(

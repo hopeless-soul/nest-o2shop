@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayNotEmpty,
   IsArray,
   IsBoolean,
   IsEmail,
@@ -53,6 +54,7 @@ export class CreateOrderDto {
 
   @ApiProperty({ type: () => CreateOrderItemDto, isArray: true })
   @IsArray()
+  @ArrayNotEmpty({ message: 'items must contain at least 1 item' })
   @ValidateNested({ each: true })
   @Type(() => CreateOrderItemDto)
   items: CreateOrderItemDto[];

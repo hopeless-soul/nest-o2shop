@@ -34,7 +34,7 @@ export class OrdersController {
   @ApiBody({ type: CreateOrderDto })
   @ApiCreatedResponse({ type: OrderResponseDto })
   @ApiBadRequestResponse({ type: ErrorResponseDto })
-  @Auth(AuthType.None)
+  @Auth(AuthType.OptionalBearer)
   @Post()
   async create(
     @Body() dto: CreateOrderDto,

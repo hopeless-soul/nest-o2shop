@@ -4,4 +4,5 @@ export enum AuthType {
   Google,
   Refresh,
   None,
+  OptionalBearer,
 }

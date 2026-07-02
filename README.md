@@ -142,6 +142,20 @@ docker compose up postgres
 pnpm run start:dev
 ```
 
+### 5. Testing Stripe payments locally
+
+Stripe webhooks (`payment_intent.succeeded`, etc.) can't reach `localhost` directly — without something forwarding them in, a successful payment on Stripe's side will never update the order's `paymentStatus`. Use the Stripe CLI to forward events during local dev:
+
+```bash
+pnpm run stripe:listen
+```
+
+This wraps `stripe listen --forward-to localhost:3001/payments/stripe/webhook`. Keep it running for the entire time you're testing payments, not just at startup — it needs to be alive when the webhook actually fires.
+
+On startup it prints a signing secret (`whsec_...`). This must match `STRIPE_WEBHOOK_SECRET` in `.env` — if it doesn't, update `.env` and restart the backend.
+
+> **Gotcha:** the Stripe CLI must be logged into the *same Stripe account* that issued `STRIPE_SECRET_KEY`, or events are silently never forwarded — no error, nothing, the order just stays `pending` forever. Check with `stripe config --list` and compare its `test_mode_api_key` against `STRIPE_SECRET_KEY` in `.env`. If they're on different accounts, run `stripe login` again and pick the matching one.
+
 ---
 
 ## Key Features
@@ -194,6 +208,7 @@ pnpm run build         # Compile to /dist
 pnpm run start:prod    # Run compiled output
 pnpm run lint          # ESLint with auto-fix
 pnpm run format        # Prettier format
+pnpm run stripe:listen # Forward Stripe webhook events to localhost:3001 (required for payment status updates in dev)
 ```
 
 ---
