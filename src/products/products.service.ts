@@ -8,7 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Brackets, In, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { ProductVariant } from './entities/product-variant.entity';
 import { ProductPhoto } from './entities/product-photo.entity';
@@ -112,7 +112,20 @@ export class ProductsService {
 
     if (onSale) {
       qb.andWhere(
-        'product.compareAtPrice IS NOT NULL AND product.compareAtPrice > product.basePrice',
+        new Brackets((qb2) => {
+          qb2
+            .where(
+              'product.compareAtPrice IS NOT NULL AND product.compareAtPrice != product.basePrice',
+            )
+            .orWhere(
+              `EXISTS (
+                SELECT 1 FROM product_variant pv
+                WHERE pv."productId" = product.id
+                  AND pv."compareAtPrice" IS NOT NULL
+                  AND pv."compareAtPrice" != COALESCE(pv."priceOverride", product.basePrice)
+              )`,
+            );
+        }),
       );
     }
 

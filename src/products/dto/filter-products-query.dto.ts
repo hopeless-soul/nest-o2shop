@@ -68,7 +68,8 @@ export class FilterProductsQueryDto extends PaginationQueryDto {
   sortOrder?: 'asc' | 'desc';
 
   @ApiPropertyOptional({
-    description: 'Return only products with compareAtPrice set above basePrice',
+    description:
+      'Return only products with compareAtPrice set and different from basePrice',
   })
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
