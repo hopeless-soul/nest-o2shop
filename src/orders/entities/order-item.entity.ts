@@ -39,6 +39,9 @@ export class OrderItem {
   @Column({ length: 3 })
   productCurrency: string;
 
+  @Column({ nullable: true })
+  productImageUrl?: string;
+
   @Column({ type: 'int' })
   quantity: number;
 

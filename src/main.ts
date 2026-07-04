@@ -17,11 +17,11 @@ async function bootstrap() {
 
   // Global Validation Pipe Setup
   app.useGlobalPipes(
-    new ValidationPipe({ 
-      whitelist: true, 
+    new ValidationPipe({
+      whitelist: true,
       transform: true,
-      forbidNonWhitelisted: true,  
-    })
+      forbidNonWhitelisted: true,
+    }),
   );
 
   // CORS Setup
@@ -36,7 +36,6 @@ async function bootstrap() {
     prefix: '/uploads',
   });
 
-  
   const config = new DocumentBuilder()
     .setTitle('O2Shop API')
     .setDescription(
@@ -97,6 +96,8 @@ async function bootstrap() {
 
   // Listen App
   await app.listen(process.env.PORT ?? 3001);
-  console.log(`API docs: http://localhost:${process.env.PORT ?? 3001}/api/docs`);
+  console.log(
+    `API docs: http://localhost:${process.env.PORT ?? 3001}/api/docs`,
+  );
 }
 void bootstrap();

@@ -25,7 +25,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
       envFilePath: '.env',
     }),
     // Two named throttlers so different route categories can opt into one or the other.
-    // "default" covers general endpoints; 
+    // "default" covers general endpoints;
     // "auth" is the stricter limit for login/register;
     // The ThrottlerGuard is registered globally in AuthModule alongside the other app guards.
     ThrottlerModule.forRootAsync({

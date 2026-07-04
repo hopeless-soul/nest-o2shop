@@ -26,6 +26,10 @@ export class OrderItemResponseDto {
   @Expose()
   productCurrency: string;
 
+  @ApiPropertyOptional({ example: 'https://cdn.example.com/photos/abc.jpg' })
+  @Expose()
+  productImageUrl?: string;
+
   @ApiProperty({ example: 2 })
   @Expose()
   quantity: number;

@@ -52,8 +52,11 @@ export class OrdersService {
       const variants = await variantRepo
         .createQueryBuilder('v')
         .innerJoinAndSelect('v.product', 'p')
+        .leftJoinAndSelect('v.featuredImage', 'vfi')
+        .leftJoinAndSelect('p.primaryPhoto', 'pp')
+        .leftJoinAndSelect('p.featuredPhoto', 'pf')
         .where('v.sku IN (:...skus)', { skus: variantSkus })
-        .setLock('pessimistic_write')
+        .setLock('pessimistic_write', undefined, ['v'])
         .getMany();
 
       const variantMap = new Map(variants.map((v) => [v.sku, v]));
@@ -92,6 +95,11 @@ export class OrdersService {
           productSku: variant.sku,
           productPrice: unitPrice,
           productCurrency: variant.product.currency,
+          productImageUrl:
+            variant.featuredImage?.url ??
+            variant.product.primaryPhoto?.url ??
+            variant.product.featuredPhoto?.url ??
+            undefined,
           quantity: item.quantity,
           total: unitPrice * item.quantity,
         };
