@@ -19,10 +19,7 @@ import {
 import { AuditService } from './audit.service';
 import { AuditLogResponseDto } from './dto/audit-log-response.dto';
 import { FilterAuditLogDto } from './dto/filter-audit-log.dto';
-import { SkipThrottle } from '@nestjs/throttler';
 
-// Admin backoffice — exempt from rate limiting
-@SkipThrottle()
 @ApiTags('Admin – Audit Log')
 @ApiBearerAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
