@@ -144,7 +144,7 @@ export class ProductsService {
     const ratingMap = await this.computeRatings(data.map((p) => p.id));
     for (const product of data) {
       this.attachComputedFields(product);
-      (product as any).rating = ratingMap.get(product.id) ?? null;
+      product.rating = ratingMap.get(product.id) ?? null;
     }
     return { data, total };
   }
@@ -513,11 +513,10 @@ export class ProductsService {
 
     // Per-variant available flag
     for (const v of variants) {
-      (v as any).available = v.stock > 0;
+      v.available = v.stock > 0;
     }
     if (product.defaultVariant) {
-      (product.defaultVariant as any).available =
-        product.defaultVariant.stock > 0;
+      product.defaultVariant.available = product.defaultVariant.stock > 0;
     }
 
     // Product-level pricing and availability
@@ -528,10 +527,10 @@ export class ProductsService {
     const priceMin = Math.min(...prices);
     const priceMax = Math.max(...prices);
 
-    (product as any).available = variants.some((v) => v.stock > 0);
-    (product as any).priceMin = priceMin;
-    (product as any).priceMax = priceMax;
-    (product as any).priceVaries = priceMin !== priceMax;
+    product.available = variants.some((v) => v.stock > 0);
+    product.priceMin = priceMin;
+    product.priceMax = priceMax;
+    product.priceVaries = priceMin !== priceMax;
 
     // Options — group unique size values (and color if multi-color product)
     const sizes = [...new Set(variants.map((v) => v.size))];
@@ -541,7 +540,7 @@ export class ProductsService {
       options.push({ name: 'Size', position: 1, values: sizes });
     if (colors.length > 1)
       options.push({ name: 'Color', position: 2, values: colors });
-    (product as any).options = options;
+    product.options = options;
 
     // Exclude featured photo from the gallery array
     if (product.photos) {

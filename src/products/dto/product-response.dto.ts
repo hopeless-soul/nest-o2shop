@@ -1,5 +1,9 @@
 import { Expose, Type } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  ApiPropertyOptions,
+} from '@nestjs/swagger';
 import { ProductPhotoResponseDto } from './product-photo-response.dto';
 import { ProductVariantResponseDto } from './product-variant-response.dto';
 import type { ProductDescription } from '../types/description-block.type';
@@ -20,7 +24,7 @@ export class ProductPhotoSummaryDto {
   aspectRatio?: number | null;
 }
 
-const ProductDescriptionSchema = {
+const ProductDescriptionSchema: ApiPropertyOptions = {
   type: 'object',
   required: ['blocks'],
   properties: {
@@ -134,7 +138,7 @@ export class ProductResponseDto {
   @Type(() => ProductOptionDto)
   options: ProductOptionDto[];
 
-  @ApiProperty(ProductDescriptionSchema as any)
+  @ApiProperty(ProductDescriptionSchema)
   @Expose()
   description: ProductDescription;
 

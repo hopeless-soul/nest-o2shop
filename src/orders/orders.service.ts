@@ -110,10 +110,18 @@ export class OrdersService {
         0,
       );
 
+      // Guest checkout using an email that matches an existing account gets
+      // linked to that account, same as the admin "update recipient" flow does.
+      const matchedUser = currentUser
+        ? undefined
+        : await manager.getRepository(User).findOne({
+            where: { email: dto.email },
+          });
+
       const order = orderRepo.create({
         orderNumber,
         orderSequence: seq,
-        userId: currentUser?.id,
+        userId: currentUser?.id ?? matchedUser?.id,
         email: currentUser ? undefined : dto.email,
         firstName: currentUser ? undefined : dto.firstName,
         lastName: currentUser ? undefined : dto.lastName,

@@ -26,8 +26,17 @@ const EXCLUDED_ENTITIES = new Set(['AuditLog', 'RefreshToken']);
 function serializeValue(val: unknown): string | null {
   if (val === null || val === undefined) return null;
   if (val instanceof Date) return val.toISOString();
-  if (typeof val !== 'object') return String(val);
-  return JSON.stringify(val);
+  // Listed explicitly (rather than `typeof val !== 'object'`) so String() only
+  // ever runs on types with a meaningful toString, never a plain object/array.
+  if (
+    typeof val === 'string' ||
+    typeof val === 'number' ||
+    typeof val === 'boolean' ||
+    typeof val === 'bigint'
+  ) {
+    return String(val);
+  }
+  return JSON.stringify(val) ?? null;
 }
 
 function flattenForDiff(

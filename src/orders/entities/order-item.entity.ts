@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { Order } from './order.entity';
 import { Product } from '../../products/entities/product.entity';
+import { decimalTransformer } from '../../common/transformers/decimal.transformer';
 
 @Entity()
 export class OrderItem {
@@ -32,7 +33,7 @@ export class OrderItem {
     type: 'decimal',
     precision: 10,
     scale: 2,
-    transformer: { to: (v) => v, from: (v) => parseFloat(v) },
+    transformer: decimalTransformer,
   })
   productPrice: number;
 
@@ -49,7 +50,7 @@ export class OrderItem {
     type: 'decimal',
     precision: 10,
     scale: 2,
-    transformer: { to: (v) => v, from: (v) => parseFloat(v) },
+    transformer: decimalTransformer,
   })
   total: number;
 

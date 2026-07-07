@@ -83,13 +83,15 @@ export class AuthenticationGuard implements CanActivate {
     ) ?? [AuthenticationGuard.defaultAuthType];
 
     const guards = authTypes.map((type) => this.authTypeGuardMap[type]).flat();
-    let error = new UnauthorizedException();
+    // Typed `unknown`, not `UnauthorizedException`, since a guard can reject with any error.
+    let error: unknown = new UnauthorizedException();
 
     for (const instance of guards) {
       const canActivate = await Promise.resolve(
         instance.canActivate(context),
-      ).catch((err) => {
+      ).catch((err: unknown) => {
         error = err;
+        return false;
       });
       if (canActivate) {
         return true;

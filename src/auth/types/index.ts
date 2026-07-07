@@ -3,8 +3,12 @@
 import { User } from '../../users/entities/user.entity';
 import { Role } from '../../users/enums/role.enum';
 
-/** Minimal user identity — shared base for anything that refers to a known user */
-interface UserData {
+/**
+ * Minimal user identity — shared base for anything that refers to a known user.
+ * Exported (not just CurrentUserData) because `nest build`'s declaration emit
+ * needs to name this type directly for inferred return types elsewhere.
+ */
+export interface UserData {
   id: string;
   email: string;
   role: Role;
@@ -24,7 +28,7 @@ export interface OAuthPayload {
 // ─── Request user ─────────────────────────────────────────────────────────────
 
 /** Attached to req.user by Passport after validate() resolves */
-export interface CurrentUserData extends UserData {}
+export type CurrentUserData = UserData;
 
 // ─── JWT payloads ─────────────────────────────────────────────────────────────
 

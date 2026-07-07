@@ -13,6 +13,7 @@ import { Address } from '../../common/embeds/address.embed';
 import { PaymentStatus } from '../enums/payment-status.enum';
 import { FulfillmentStatus } from '../enums/fulfillment-status.enum';
 import { OrderItem } from './order-item.entity';
+import { decimalTransformer } from '../../common/transformers/decimal.transformer';
 
 @Entity()
 export class Order {
@@ -58,7 +59,7 @@ export class Order {
     type: 'decimal',
     precision: 10,
     scale: 2,
-    transformer: { to: (v) => v, from: (v) => parseFloat(v) },
+    transformer: decimalTransformer,
   })
   totalAmount: number;
 
@@ -78,7 +79,7 @@ export class Order {
     type: 'decimal',
     precision: 10,
     scale: 2,
-    transformer: { to: (v) => v, from: (v) => parseFloat(v) },
+    transformer: decimalTransformer,
   })
   shippingPrice: number;
 

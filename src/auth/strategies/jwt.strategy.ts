@@ -9,6 +9,7 @@ import {
   toCurrentUserData,
 } from '../types';
 import { UsersService } from '../../users/users.service';
+import { extractCookie } from '../utils/extract-cookie.util';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -18,32 +19,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        JwtStrategy.extractJwtFromCookies,
+        (req: Request) => extractCookie(req, 'access_token'),
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       secretOrKey: configService.getOrThrow<string>('JWT_SECRET'),
       ignoreExpiration: false,
     });
-  }
-
-  /**
-   * Extracts a JWT from the request cookies by name.
-   *
-   * Used as a custom extractor in Passport JWT strategies
-   * instead of the default Bearer token extraction from headers.
-   *
-   * @param request - Incoming HTTP request
-   * @param cookieName - Cookie key to extract from (default: 'access_token')
-   * @returns The raw JWT string, or null if the cookie is absent
-   */
-  private static extractJwtFromCookies(
-    request: Request,
-    cookieName: string = 'access_token',
-  ): string | null {
-    if (request.cookies && request?.cookies[cookieName]) {
-      return request.cookies[cookieName];
-    }
-    return null;
   }
 
   async validate(payload: AccessTokenPayload): Promise<CurrentUserData> {

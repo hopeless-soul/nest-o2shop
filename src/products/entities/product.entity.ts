@@ -16,6 +16,10 @@ import { SubCategory } from '../../categories/entities/subcategory.entity';
 import { ProductPhoto } from './product-photo.entity';
 import { ProductVariant } from './product-variant.entity';
 import type { ProductDescription } from '../types/description-block.type';
+import {
+  decimalTransformer,
+  nullableDecimalTransformer,
+} from '../../common/transformers/decimal.transformer';
 
 @Entity()
 export class Product {
@@ -54,7 +58,7 @@ export class Product {
     type: 'decimal',
     precision: 10,
     scale: 2,
-    transformer: { to: (v) => v, from: (v) => parseFloat(v) },
+    transformer: decimalTransformer,
   })
   basePrice: number;
 
@@ -63,7 +67,7 @@ export class Product {
     precision: 10,
     scale: 2,
     nullable: true,
-    transformer: { to: (v) => v, from: (v) => (v == null ? v : parseFloat(v)) },
+    transformer: nullableDecimalTransformer,
   })
   compareAtPrice?: number | null;
 
@@ -127,4 +131,22 @@ export class Product {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  /** Computed in service — not persisted */
+  rating?: number | null;
+
+  /** Computed in service — not persisted */
+  available?: boolean;
+
+  /** Computed in service — not persisted */
+  priceMin?: number;
+
+  /** Computed in service — not persisted */
+  priceMax?: number;
+
+  /** Computed in service — not persisted */
+  priceVaries?: boolean;
+
+  /** Computed in service — not persisted */
+  options?: { name: string; position: number; values: string[] }[];
 }

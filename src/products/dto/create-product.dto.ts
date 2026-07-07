@@ -9,10 +9,14 @@ import {
   Matches,
   Min,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  ApiPropertyOptions,
+} from '@nestjs/swagger';
 import type { ProductDescription } from '../types/description-block.type';
 
-const ProductDescriptionSchema = {
+const ProductDescriptionSchema: ApiPropertyOptions = {
   type: 'object',
   required: ['blocks'],
   properties: {
@@ -74,9 +78,10 @@ export class CreateProductDto {
   @IsString()
   categoryId: string;
 
-  @ApiProperty({ format: 'uuid' })
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
   @IsString()
-  subCategoryId: string;
+  subCategoryId?: string;
 
   @ApiProperty({ minimum: 0, example: 29.99 })
   @IsNumber()
@@ -94,7 +99,7 @@ export class CreateProductDto {
   @Length(3, 3)
   currency: string;
 
-  @ApiProperty(ProductDescriptionSchema as any)
+  @ApiProperty(ProductDescriptionSchema)
   @IsObject()
   description: ProductDescription;
 

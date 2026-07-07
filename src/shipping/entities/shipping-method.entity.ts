@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { decimalTransformer } from '../../common/transformers/decimal.transformer';
 
 @Entity()
 export class ShippingMethod {
@@ -18,7 +19,7 @@ export class ShippingMethod {
     type: 'decimal',
     precision: 10,
     scale: 2,
-    transformer: { to: (v) => v, from: (v) => parseFloat(v) },
+    transformer: decimalTransformer,
   })
   price: number;
 

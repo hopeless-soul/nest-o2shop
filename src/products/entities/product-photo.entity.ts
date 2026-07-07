@@ -5,6 +5,10 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { nullableDecimalTransformer } from '../../common/transformers/decimal.transformer';
+// `import type` is erased at compile time, so this doesn't create the runtime
+// circular require that a value import would (Product also references ProductPhoto).
+import type { Product } from './product.entity';
 
 @Entity()
 export class ProductPhoto {
@@ -15,7 +19,7 @@ export class ProductPhoto {
   productId: string;
 
   @ManyToOne('Product', 'photos', { onDelete: 'CASCADE' })
-  product: any;
+  product: Product;
 
   @Column()
   url: string;
@@ -40,7 +44,7 @@ export class ProductPhoto {
     precision: 6,
     scale: 4,
     nullable: true,
-    transformer: { to: (v) => v, from: (v) => (v == null ? v : parseFloat(v)) },
+    transformer: nullableDecimalTransformer,
   })
   aspectRatio?: number | null;
 

@@ -1,5 +1,6 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { AccessTokenPayload, CurrentUserData } from '../types';
+import type { Request } from 'express';
+import { CurrentUserData } from '../types';
 
 /**
  * Parameter decorator that extracts the current authenticated user from the request.
@@ -12,10 +13,12 @@ import { AccessTokenPayload, CurrentUserData } from '../types';
 export const CurrentUser = createParamDecorator(
   (field: keyof CurrentUserData | undefined, ctx: ExecutionContext) => {
     // Switch context to HTTP and grab the underlying Express request object
-    const request = ctx.switchToHttp().getRequest();
+    const request = ctx
+      .switchToHttp()
+      .getRequest<Request & { user?: CurrentUserData }>();
 
     // req.user is set by Passport after JwtStrategy.validate() runs successfully
-    const user: CurrentUserData | undefined = request.user;
+    const user = request.user;
 
     // If a specific field was requested (e.g. @CurrentUser('email')),
     // return just that field. Otherwise return the full user object.

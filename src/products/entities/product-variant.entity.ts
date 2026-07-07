@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Product } from './product.entity';
 import { ProductPhoto } from './product-photo.entity';
+import { nullableDecimalTransformer } from '../../common/transformers/decimal.transformer';
 
 @Entity()
 export class ProductVariant {
@@ -43,7 +44,7 @@ export class ProductVariant {
     precision: 10,
     scale: 2,
     nullable: true,
-    transformer: { to: (v) => v, from: (v) => (v == null ? v : parseFloat(v)) },
+    transformer: nullableDecimalTransformer,
   })
   priceOverride?: number;
 
@@ -52,7 +53,7 @@ export class ProductVariant {
     precision: 10,
     scale: 2,
     nullable: true,
-    transformer: { to: (v) => v, from: (v) => (v == null ? v : parseFloat(v)) },
+    transformer: nullableDecimalTransformer,
   })
   compareAtPrice?: number | null;
 
@@ -78,4 +79,7 @@ export class ProductVariant {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  /** Computed in service — not persisted */
+  available?: boolean;
 }
