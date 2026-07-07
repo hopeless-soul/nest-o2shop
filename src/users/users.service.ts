@@ -15,6 +15,18 @@ import { FilterUsersQueryDto } from './dto/filter-users-query.dto';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 import { Paginated } from '../common/dto/paginated-response.dto';
 
+const PG_UNIQUE_VIOLATION = '23505';
+
+// node-postgres errors aren't a typed class, just plain objects with a `code`
+// string — this narrows `unknown` instead of trusting `catch (error: any)`.
+function isPgUniqueViolation(error: unknown): error is { code: string } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    (error as { code?: unknown }).code === PG_UNIQUE_VIOLATION
+  );
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -47,9 +59,8 @@ export class UsersService {
         const saved = await userRepo.save(user);
         await this.linkGuestData(saved.id, saved.email, manager);
         return toCurrentUserData(saved);
-      } catch (error: any) {
-        const pgUniqueViolationCode = '23505';
-        if (error?.code === pgUniqueViolationCode) {
+      } catch (error) {
+        if (isPgUniqueViolation(error)) {
           throw new ConflictException('Email or username already exists');
         }
         throw error;
@@ -81,8 +92,8 @@ export class UsersService {
         const saved = await userRepo.save(user);
         await this.linkGuestData(saved.id, saved.email, manager);
         return saved;
-      } catch (error: any) {
-        if (error?.code === '23505') {
+      } catch (error) {
+        if (isPgUniqueViolation(error)) {
           throw new ConflictException('Email already exists');
         }
         throw error;
