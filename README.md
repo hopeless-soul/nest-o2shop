@@ -53,6 +53,8 @@ Request → AuthenticationGuard → RolesGuard → Controller → Service → Ty
 | `ShippingModule` | Shipping method management |
 | `AddressesModule` | Saved shipping/billing addresses per user |
 | `MeModule` | Authenticated user profile, orders, and addresses |
+| `PaymentsModule` | Stripe payment intents (auth + guest) and webhook handling |
+| `AuditModule` | Automatic audit logging of entity changes via TypeORM subscriber |
 | `StorageModule` | Abstract file storage — local by default, easily swappable for S3 |
 | `HashingModule` | Abstract hashing — bcrypt by default |
 | `DatabaseModule` | TypeORM async configuration |
@@ -162,6 +164,8 @@ On startup it prints a signing secret (`whsec_...`). This must match `STRIPE_WEB
 
 - **Dual-surface controllers** — every resource has a public/customer controller and an `admin/` controller with full CRUD and extra filters
 - **Role-based access control** — `@Auth(AuthType.Bearer)` + `@Roles(Role.ADMIN)` applied via global guards
+- **Rate limiting** — global throttler with a stricter limit on auth endpoints; admin-role users are exempt
+- **Audit logging** — entity changes are recorded automatically via a TypeORM subscriber, queryable through the admin audit log endpoint
 - **Google OAuth 2.0** — sign-in creates or links accounts automatically
 - **Guest checkout** — orders can be placed without an account; orders and reviews are retroactively linked on registration
 - **Pessimistic stock locking** — order creation acquires a `SELECT ... FOR UPDATE` lock to prevent overselling
@@ -209,6 +213,10 @@ pnpm run start:prod    # Run compiled output
 pnpm run lint          # ESLint with auto-fix
 pnpm run format        # Prettier format
 pnpm run stripe:listen # Forward Stripe webhook events to localhost:3001 (required for payment status updates in dev)
+pnpm run seed          # Seed the database
+pnpm run migration:generate  # Generate a TypeORM migration from entity changes
+pnpm run migration:run       # Run pending migrations
+pnpm run migration:revert    # Revert the last migration
 ```
 
 ---
